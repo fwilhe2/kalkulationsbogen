@@ -1,8 +1,8 @@
 <p align="center">
-    <img src="https://user-images.githubusercontent.com/6702424/80216211-00ef5280-863e-11ea-81de-59f3a3d4b8e4.png">  
+    <img src="https://user-images.githubusercontent.com/6702424/80216211-00ef5280-863e-11ea-81de-59f3a3d4b8e4.png">
 </p>
 <p align="center">
-    <i>Spreadsheet builder for nodejs written in TypeScript</i>
+    <i>Kalkulationsbogen: Spreadsheet builder for nodejs written in TypeScript</i>
     <br>
     <br>
     <a href="https://github.com/fwilhe2/kalkulationsbogen/actions">
@@ -31,12 +31,53 @@ $ npm install --save kalkulationsbogen
 ```
 
 ```typescript
-import { myFunction, myObject } from "kalkulationsbogen";
+import { buildSpreadsheet } from "kalkulationsbogen";
 ```
 
 Specific imports:
 
 ```typescript
-import { myFunction } from "kalkulationsbogen/myFunction";
-import { myObject } from "kalkulationsbogen/myObject";
+import { buildSpreadsheet } from "kalkulationsbogen/spreadsheet";
+```
+
+# Example
+
+Example code:
+
+```typescript
+import { buildSpreadsheet } from "kalkulationsbogen";
+
+const spreadsheet = [
+  ["String", "Float", "Date", "Time", "Currency", "Percentage"],
+  [
+    {
+      value: "ABBA",
+      valueType: "string",
+    },
+    {
+      value: "42.3324",
+      valueType: "float",
+    },
+    {
+      value: "2022-02-02",
+      valueType: "date",
+    },
+    {
+      value: "19:03:00",
+      valueType: "time",
+    },
+    {
+      value: 2.22,
+      valueType: "currency",
+      currency: "EUR",
+    },
+    {
+      value: 0.4223,
+      valueType: "percentage",
+    },
+  ],
+];
+
+const mySpreadsheet = await buildSpreadsheet(spreadsheet);
+await writeFile("mySpreadsheet.fods", mySpreadsheet);
 ```

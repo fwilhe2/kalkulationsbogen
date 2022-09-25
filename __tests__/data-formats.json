@@ -1,0 +1,35 @@
+[
+  ["String", "Float", "Date", "Time", "Currency", "Currency with Cents", "Percentage"],
+  [
+    {
+      "value": "ABBA",
+      "valueType": "string"
+    },
+    {
+      "value": "42.3324",
+      "valueType": "float"
+    },
+    {
+      "value": "2022-02-02",
+      "valueType": "date"
+    },
+    {
+      "value": "19:03:00",
+      "valueType": "time"
+    },
+    {
+      "value": 3,
+      "valueType": "currency",
+      "currency": "EUR"
+    },
+    {
+      "value": 2.22,
+      "valueType": "currency",
+      "currency": "EUR"
+    },
+    {
+      "value": 0.4223,
+      "valueType": "percentage"
+    }
+  ]
+]

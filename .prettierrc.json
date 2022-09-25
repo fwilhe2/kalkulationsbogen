@@ -1,11 +1,9 @@
 {
-    "printWidth": 105,
-    "tabWidth": 4,
-    "useTabs": false,
-    "semi": true,
-    "singleQuote": false,
-    "quoteProps": "preserve",
-    "trailingComma": "all",
-    "bracketSpacing": true,
-    "arrowParens": "avoid"
+  "printWidth": 200,
+  "overrides": [
+    {
+      "files": "*.fods",
+      "options": { "parser": "xml" }
+    }
+  ]
 }

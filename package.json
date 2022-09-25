@@ -1,53 +1,55 @@
 {
-    "name": "kalkulationsbogen",
-    "version": "0.0.0",
-    "description": "Spreadsheet builder for nodejs written in TypeScript",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/fwilhe2/kalkulationsbogen.git"
-    },
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "scripts": {
-        "test": "jest",
-        "build": "tsc",
-        "lint:check": "eslint . --ext .ts,.tsx",
-        "lint": "npm run lint:check -- --fix",
-        "_format": "prettier '**/*.{ts,tsx,json,md}'",
-        "format": "npm run _format -- --write",
-        "format:check": "npm run _format -- --list-different"
-    },
-    "lint-staged": {
-        "*.{ts,tsx}": [
-            "eslint --fix"
-        ],
-        "*.{ts,tsx,json,md}": [
-            "prettier --write"
-        ]
-    },
-    "author": "Florian Wilhelm",
-    "license": "MIT",
-    "files": [
-        "src/",
-        "!src/test/",
-        "dist/",
-        "!dist/test/",
-        "!dist/tsconfig.tsbuildinfo"
+  "name": "kalkulationsbogen",
+  "version": "0.0.0",
+  "description": "Spreadsheet builder for nodejs written in TypeScript",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fwilhe2/kalkulationsbogen.git"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "lint:check": "eslint . --ext .ts,.tsx",
+    "lint": "npm run lint:check -- --fix",
+    "_format": "prettier '**/*.{ts,tsx,json,md}'",
+    "format": "npm run _format -- --write",
+    "format:check": "npm run _format -- --list-different",
+    "all": "yarn run build && yarn run format && yarn run lint && yarn test",
+    "dependency-upgrade": "yarn upgrade && yarn run all"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
     ],
-    "keywords": [],
-    "homepage": "https://github.com/fwilhe2/kalkulationsbogen",
-    "devDependencies": {
-        "@types/jest": "^29.0.3",
-        "@types/node": "^16.11.60",
-        "@typescript-eslint/eslint-plugin": "^4.33.0",
-        "@typescript-eslint/parser": "^4.33.0",
-        "eslint": "^7.32.0",
-        "eslint-config-prettier": "^8.5.0",
-        "husky": "^8.0.1",
-        "jest": "^29.0.2",
-        "lint-staged": "^13.0.3",
-        "prettier": "^2.7.1",
-        "ts-jest": "^29.0.0",
-        "typescript": "^4.8.3"
-    }
+    "*.{ts,tsx,json,md}": [
+      "prettier --write"
+    ]
+  },
+  "author": "Florian Wilhelm",
+  "license": "MIT",
+  "files": [
+    "src/",
+    "!src/test/",
+    "dist/",
+    "!dist/test/",
+    "!dist/tsconfig.tsbuildinfo"
+  ],
+  "keywords": [],
+  "homepage": "https://github.com/fwilhe2/kalkulationsbogen",
+  "devDependencies": {
+    "@types/jest": "^29.0.3",
+    "@types/node": "^18.7.16",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.5.0",
+    "husky": "^8.0.1",
+    "jest": "^29.0.2",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "ts-jest": "^29.0.0",
+    "typescript": "^4.8.3"
+  }
 }
