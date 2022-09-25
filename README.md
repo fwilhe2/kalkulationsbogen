@@ -2,7 +2,7 @@
     <img src="https://user-images.githubusercontent.com/6702424/80216211-00ef5280-863e-11ea-81de-59f3a3d4b8e4.png">
 </p>
 <p align="center">
-    <i>Kalkulationsbogen: Spreadsheet builder for nodejs written in TypeScript</i>
+    <b>Kalkulationsbogen</b> <i>Spreadsheet builder for nodejs written in TypeScript</i>
     <br>
     <br>
     <a href="https://github.com/fwilhe2/kalkulationsbogen/actions">
@@ -23,6 +23,15 @@
   -
   <a href="https://github.com/fwilhe2/kalkulationsbogen">Documentation</a>
 </p>
+
+Kalkulationsbogen is a library for turing data into a spreadsheet.
+It is not meant to be a general purpose tool for controlling all aspects of a spreadsheet.
+The focus is on a simple and small API.
+
+The motivation to build kalkulationsbogen was that writing out CSV files is simple but the capabilities are very limited.
+For example numbers or currency values can't be nicely formatted in CSV files.
+
+For the time being, kalkulationsbogen only supports the Open Document Spreadsheet (`ods`) format.
 
 # Install / Import
 
@@ -67,12 +76,11 @@ const spreadsheet = [
       valueType: "time",
     },
     {
-      value: 2.22,
+      value: "2.22",
       valueType: "currency",
-      currency: "EUR",
     },
     {
-      value: 0.4223,
+      value: "0.4223",
       valueType: "percentage",
     },
   ],
