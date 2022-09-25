@@ -30,7 +30,7 @@
             "pre-commit": "lint-staged -v"
         }
     },
-    "author": "u/fwilhe2",
+    "author": "Florian Wilhelm",
     "license": "MIT",
     "files": [
         "src/",
