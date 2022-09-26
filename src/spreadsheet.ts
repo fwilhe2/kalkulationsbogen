@@ -8,12 +8,30 @@ export interface complexCell {
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
 
+class Cell {
+  r: number
+  c: number
+  value: string
+  type: valueType | undefined
+
+  constructor(r: number, c: number, value: string, type: valueType | undefined) {
+    this.r = r
+    this.c = c
+    this.value = value
+    this.type = type
+  }
+}
+
 /**
  * Build a spreadsheet from data
  * @param spreadsheet list of lists of cells
  * @returns string Flat OpenDocument Spreadsheet document
  */
 export async function buildSpreadsheet(spreadsheet: spreadsheetInput): Promise<string> {
+
+  const cells = spreadsheet.map((row, rowIndex) => row.map((cell, cellIndex) => new Cell(rowIndex + 1, cellIndex + 1, typeof cell === 'string'? cell : cell.value, typeof cell === 'string'? 'string' : cell.valueType)))
+  console.log(JSON.stringify(cells))
+
   const tableRows = spreadsheet.map(mapRows).join("\n");
 
   return FODS_TEMPLATE.replace("TABLE_ROWS", tableRows);
