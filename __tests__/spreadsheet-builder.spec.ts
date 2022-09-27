@@ -30,22 +30,26 @@ describe("Spreadsheet builder", () => {
     await mkdir("__tests__/output");
   });
 
-  test("Creating a spreadsheet which can be opened using libreoffice - check the csv output is identical", async () => {
-    const expectedCsv = `"String","Float","Date","Time","Currency","Currency with Cents","Percentage"\n"ABBA",42.33,2022-02-02,19:03:00,3.00€,2.22€,42.23%\n`;
-
-    const spreadsheet = JSON.parse((await readFile("__tests__/data-formats.json")).toString());
-    const actualFods = await buildSpreadsheet(spreadsheet);
-    await writeFile("__tests__/output/common-data-formats.fods", actualFods);
+  async function integrationTest(name: string, actualSpreadsheet: spreadsheetInput, expectedCsv: string) {
+    const actualFods = await buildSpreadsheet(actualSpreadsheet);
+    await writeFile(`__tests__/output/${name}.fods`, actualFods);
 
     // todo: see why this did not work using execa
 
     const e = promisify(exec);
-    const p = await e('libreoffice --headless --convert-to csv:"Text - txt - csv (StarCalc)":"44,34,76,1,,1031,true,true" __tests__/output/common-data-formats.fods --outdir __tests__/output');
+    const p = await e(`libreoffice --headless --convert-to csv:"Text - txt - csv (StarCalc)":"44,34,76,1,,1031,true,true" __tests__/output/${name}.fods --outdir __tests__/output`);
 
     expect(p.stderr).toEqual("");
 
-    const actualCsv = (await readFile("__tests__/output/common-data-formats.csv")).toString();
+    const actualCsv = (await readFile(`__tests__/output/${name}.csv`)).toString();
     expect(actualCsv).toEqual(expectedCsv);
+  }
+
+  test("Creating a spreadsheet which can be opened using libreoffice - check the csv output is identical", async () => {
+    const expectedCsv = `"String","Float","Date","Time","Currency","Currency with Cents","Percentage"\n"ABBA",42.33,2022-02-02,19:03:00,3.00€,2.22€,42.23%\n`;
+
+    const spreadsheet = JSON.parse((await readFile("__tests__/data-formats.json")).toString());
+    await integrationTest("common-data-formats", spreadsheet, expectedCsv);
   });
 
   test("Performance Model Spreadsheet", async () => {
@@ -83,35 +87,13 @@ describe("Spreadsheet builder", () => {
         },
       ]);
     }
-    const actualFods = await buildSpreadsheet(mySpreadsheet);
-    await writeFile("__tests__/output/performanceModel.fods", actualFods);
-
-    // todo: see why this did not work using execa
-
-    const e = promisify(exec);
-    const p = await e('libreoffice --headless --convert-to csv:"Text - txt - csv (StarCalc)":"44,34,76,1,,1031,true,true" __tests__/output/performanceModel.fods --outdir __tests__/output');
-
-    expect(p.stderr).toEqual("");
-
-    const actualCsv = (await readFile("__tests__/output/performanceModel.csv")).toString();
-    expect(actualCsv).toEqual(expectedCsv);
+    await integrationTest("performance-model", mySpreadsheet, expectedCsv);
   });
 
   test("CDATA needs to be escaped", async () => {
     const expectedCsv = `"<xml is=""a thing"">","foo & bar"\n`;
 
     const spreadsheet = [['<xml is="a thing">', "foo & bar"]];
-    const actualFods = await buildSpreadsheet(spreadsheet);
-    await writeFile("__tests__/output/cdata.fods", actualFods);
-
-    // todo: see why this did not work using execa
-
-    const e = promisify(exec);
-    const p = await e('libreoffice --headless --convert-to csv:"Text - txt - csv (StarCalc)":"44,34,76,1,,1031,true,true" __tests__/output/cdata.fods --outdir __tests__/output');
-
-    expect(p.stderr).toEqual("");
-
-    const actualCsv = (await readFile("__tests__/output/cdata.csv")).toString();
-    expect(actualCsv).toEqual(expectedCsv);
+    await integrationTest("cdata", spreadsheet, expectedCsv);
   });
 });
