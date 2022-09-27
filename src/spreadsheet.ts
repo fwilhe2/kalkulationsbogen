@@ -5,20 +5,27 @@ export interface complexCell {
   value: string; // | number
   valueType?: valueType | undefined;
 }
-export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
+export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage" | "formula";
 export type spreadsheetOutput = string;
 
 class Cell {
-  r: number
-  c: number
-  value: string
-  type: valueType | undefined
+  r: number;
+  c: number;
+  value: string;
+  type: valueType | undefined;
 
   constructor(r: number, c: number, value: string, type: valueType | undefined) {
-    this.r = r
-    this.c = c
-    this.value = value
-    this.type = type
+    this.r = r;
+    this.c = c;
+    this.value = value;
+    this.type = type;
+  }
+
+  r1c1(): string {
+    return `R${this.r}C${this.c}`;
+  }
+  a1(): string {
+    return `${String.fromCharCode(64 + this.c)}${this.r}`;
   }
 }
 
@@ -28,9 +35,12 @@ class Cell {
  * @returns string Flat OpenDocument Spreadsheet document
  */
 export async function buildSpreadsheet(spreadsheet: spreadsheetInput): Promise<string> {
+  const cells = spreadsheet.map((row, rowIndex) =>
+    row.map((cell, cellIndex) => new Cell(rowIndex + 1, cellIndex + 1, typeof cell === "string" ? cell : cell.value, typeof cell === "string" ? "string" : cell.valueType))
+  );
+  console.log(JSON.stringify(cells));
 
-  const cells = spreadsheet.map((row, rowIndex) => row.map((cell, cellIndex) => new Cell(rowIndex + 1, cellIndex + 1, typeof cell === 'string'? cell : cell.value, typeof cell === 'string'? 'string' : cell.valueType)))
-  console.log(JSON.stringify(cells))
+  cells.forEach((r) => r.forEach((c) => console.log(`${c.a1()}, ${c.r1c1()}: ${c.value}`)));
 
   const tableRows = spreadsheet.map(mapRows).join("\n");
 
@@ -74,6 +84,10 @@ function tableCellElement(cell: cell): string {
 
   if (cell.valueType === "percentage") {
     return `<table:table-cell office:value="${cell.value}" table:style-name="PERCENTAGE_STYLE" office:value-type="percentage" calcext:value-type="percentage" />`;
+  }
+
+  if (cell.valueType === "formula") {
+    return `<table:table-cell table:formula="of:${cell.value}" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />`;
   }
 
   return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell.value}]]></text:p> </table:table-cell>`;

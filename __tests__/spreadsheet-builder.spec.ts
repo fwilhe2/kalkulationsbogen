@@ -114,4 +114,37 @@ describe("Spreadsheet builder", () => {
     const actualCsv = (await readFile("__tests__/output/cdata.csv")).toString();
     expect(actualCsv).toEqual(expectedCsv);
   });
+
+  test("Formula", async () => {
+    const expectedCsv = `1.00,2.00,3.00\n6.00,2.00,1.00\n1.11,1.10,\n`;
+
+    const spreadsheet: spreadsheetInput = [
+      [
+        { value: "1.0", valueType: "float" },
+        { value: "2.0", valueType: "float" },
+        { value: "3.0", valueType: "float" },
+      ],
+      [
+        { value: "=SUM([.A1:.C1])", valueType: "formula" },
+        { value: "=AVERAGE([.A1:.C1])", valueType: "formula" },
+        { value: "=MIN([.A1:.C1])", valueType: "formula" },
+      ],
+      [
+        { value: "1.1111111", valueType: "float" },
+        { value: "=ROUND([.A3];1)", valueType: "formula" },
+      ],
+    ];
+    const actualFods = await buildSpreadsheet(spreadsheet);
+    await writeFile("__tests__/output/formula.fods", actualFods);
+
+    // todo: see why this did not work using execa
+
+    const e = promisify(exec);
+    const p = await e('libreoffice --headless --convert-to csv:"Text - txt - csv (StarCalc)":"44,34,76,1,,1031,true,true" __tests__/output/formula.fods --outdir __tests__/output');
+
+    expect(p.stderr).toEqual("");
+
+    const actualCsv = (await readFile("__tests__/output/formula.csv")).toString();
+    expect(actualCsv).toEqual(expectedCsv);
+  });
 });
