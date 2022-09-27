@@ -96,4 +96,33 @@ describe("Spreadsheet builder", () => {
     const spreadsheet = [['<xml is="a thing">', "foo & bar"]];
     await integrationTest("cdata", spreadsheet, expectedCsv);
   });
+
+  test("Formula", async () => {
+    const expectedCsv = `1.00,2.00,3.00\n6,2,1\n1.11,1.1,\n9.99,10,\n1903,,\n`;
+
+    const spreadsheet: spreadsheetInput = [
+      [
+        { value: "1.0", valueType: "float" },
+        { value: "2.0", valueType: "float" },
+        { value: "3.0", valueType: "float" },
+      ],
+      [
+        { formula: "=SUM([.A1:.C1])" },
+        { formula: "=AVERAGE([.A1:.C1])" },
+        { formula: "=MIN([.A1:.C1])" },
+      ],
+      [
+        { value: "1.1111111", valueType: "float" },
+        { formula: "=ROUND([.A3];1)" },
+      ],
+      [
+        { value: "9.9876", valueType: "float" },
+        { formula: "=ROUND([.A4];1)" },
+      ],
+      [
+        { formula: '=ARABIC(&quot;MCMIII&quot;)'},
+      ]
+    ];
+    await integrationTest("formula", spreadsheet, expectedCsv);
+  });
 });
