@@ -107,20 +107,20 @@ describe("Spreadsheet builder", () => {
         { value: "3.0", valueType: "float" },
       ],
       [
-        { formula: "=SUM([.A1:.C1])" },
-        { formula: "=AVERAGE([.A1:.C1])" },
-        { formula: "=MIN([.A1:.C1])" },
+        { functionName: "SUM", arguments: ['[.A1:.C1]']},
+        { functionName: "AVERAGE", arguments: ['[.A1:.C1]']},
+        { functionName: "MIN", arguments: ['[.A1:.C1]']},
       ],
       [
         { value: "1.1111111", valueType: "float" },
-        { formula: "=ROUND([.A3];1)" },
+        { functionName: "ROUND", arguments: ['[.A3]', '1']},
       ],
       [
         { value: "9.9876", valueType: "float" },
-        { formula: "=ROUND([.A4];1)" },
+        { functionName: "ROUND", arguments: ['[.A4]', '1']},
       ],
       [
-        { formula: '=ARABIC(&quot;MCMIII&quot;)'},
+        { functionName: "ARABIC", arguments: ['&quot;MCMIII&quot;']},
       ]
     ];
     await integrationTest("formula", spreadsheet, expectedCsv);
