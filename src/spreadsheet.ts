@@ -6,8 +6,8 @@ export interface complexCell {
   valueType?: valueType | undefined;
 }
 export interface formulaCell {
-  functionName: string,
-  arguments: string[]
+  functionName: string;
+  arguments: string[];
 }
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
@@ -36,8 +36,8 @@ function tableCellElement(cell: cell): string {
     return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell}]]></text:p> </table:table-cell>`;
   }
 
-  if ('functionName' in cell) {
-    return `<table:table-cell table:formula="of:=${cell.functionName}(${cell.arguments.join(';')})" />`
+  if ("functionName" in cell) {
+    return `<table:table-cell table:formula="of:=${cell.functionName}(${cell.arguments.join(";")})" />`;
   }
 
   if (cell.valueType === "float") {
