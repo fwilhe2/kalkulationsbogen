@@ -96,4 +96,49 @@ describe("Spreadsheet builder", () => {
     const spreadsheet = [['<xml is="a thing">', "foo & bar"]];
     await integrationTest("cdata", spreadsheet, expectedCsv);
   });
+
+  test("Formula", async () => {
+    const expectedCsv = `1.00,2.00,3.00\n6,2,1\n1.11,1.1,\n9.99,10,\n1903,,\n`;
+
+    const spreadsheet: spreadsheetInput = [
+      [
+        { value: "1.0", valueType: "float" },
+        { value: "2.0", valueType: "float" },
+        { value: "3.0", valueType: "float" },
+      ],
+      [
+        { functionName: "SUM", arguments: "[.A1:.C1]" },
+        { functionName: "AVERAGE", arguments: "[.A1:.C1]" },
+        { functionName: "MIN", arguments: "[.A1:.C1]" },
+      ],
+      [
+        { value: "1.1111111", valueType: "float" },
+        { functionName: "ROUND", arguments: ["[.A3]", "1"] },
+      ],
+      [
+        { value: "9.9876", valueType: "float" },
+        { functionName: "ROUND", arguments: ["[.A4]", "1"] },
+      ],
+      [{ functionName: "ARABIC", arguments: "&quot;MCMIII&quot;" }],
+    ];
+    await integrationTest("formula", spreadsheet, expectedCsv);
+  });
+
+  test("Data table formula with column sums and row averages", async () => {
+    const expectedCsv = `" ","2020","2021","2022","avg"\n"a",27.00€,36.00€,49.00€,37.33€\n"b",9.00€,14.00€,10.00€,11.00€\n"c",3.00€,5.00€,10.00€,6.00€\n"sum",39.00€,55.00€,69.00€,\n`;
+
+    // x   x   x   avg
+    // x   x   x   avg
+    // sum sum sum
+
+    const data: spreadsheetInput = [
+      [" ", "2020", "2021", "2022", "avg"],
+      ["a", { value: "27", valueType: "currency" }, { value: "36", valueType: "currency" }, { value: "49", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B2:.D2]" }],
+      ["b", { value: "9", valueType: "currency" }, { value: "14", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B3:.D3]" }],
+      ["c", { value: "3", valueType: "currency" }, { value: "5", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B4:.D4]" }],
+      ["sum", { functionName: "SUM", arguments: "[.B2:.B4]" }, { functionName: "SUM", arguments: "[.C2:.C4]" }, { functionName: "SUM", arguments: "[.D2:.D4]" }],
+    ];
+
+    await integrationTest("formula-data-table", data, expectedCsv);
+  });
 });

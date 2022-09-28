@@ -1,9 +1,13 @@
 export type spreadsheetInput = row[];
 export type row = cell[];
-export type cell = complexCell | string;
+export type cell = complexCell | formulaCell | string;
 export interface complexCell {
   value: string; // | number
   valueType?: valueType | undefined;
+}
+export interface formulaCell {
+  functionName: string;
+  arguments: string[] | string;
 }
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
@@ -30,6 +34,10 @@ function mapCells(value: cell): string {
 function tableCellElement(cell: cell): string {
   if (typeof cell == "string") {
     return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell}]]></text:p> </table:table-cell>`;
+  }
+
+  if ("functionName" in cell) {
+    return `<table:table-cell table:formula="of:=${cell.functionName}(${Array.isArray(cell.arguments) ? cell.arguments.join(";") : cell.arguments})" />`;
   }
 
   if (cell.valueType === "float") {
