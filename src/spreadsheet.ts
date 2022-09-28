@@ -7,7 +7,7 @@ export interface complexCell {
 }
 export interface formulaCell {
   functionName: string;
-  arguments: string[];
+  arguments: string[] | string;
 }
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
@@ -37,7 +37,7 @@ function tableCellElement(cell: cell): string {
   }
 
   if ("functionName" in cell) {
-    return `<table:table-cell table:formula="of:=${cell.functionName}(${cell.arguments.join(";")})" />`;
+    return `<table:table-cell table:formula="of:=${cell.functionName}(${Array.isArray(cell.arguments) ? cell.arguments.join(";") : cell.arguments})" />`;
   }
 
   if (cell.valueType === "float") {

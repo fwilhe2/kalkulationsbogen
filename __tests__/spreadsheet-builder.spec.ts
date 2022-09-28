@@ -107,9 +107,9 @@ describe("Spreadsheet builder", () => {
         { value: "3.0", valueType: "float" },
       ],
       [
-        { functionName: "SUM", arguments: ["[.A1:.C1]"] },
-        { functionName: "AVERAGE", arguments: ["[.A1:.C1]"] },
-        { functionName: "MIN", arguments: ["[.A1:.C1]"] },
+        { functionName: "SUM", arguments: "[.A1:.C1]" },
+        { functionName: "AVERAGE", arguments: "[.A1:.C1]" },
+        { functionName: "MIN", arguments: "[.A1:.C1]" },
       ],
       [
         { value: "1.1111111", valueType: "float" },
@@ -119,7 +119,7 @@ describe("Spreadsheet builder", () => {
         { value: "9.9876", valueType: "float" },
         { functionName: "ROUND", arguments: ["[.A4]", "1"] },
       ],
-      [{ functionName: "ARABIC", arguments: ["&quot;MCMIII&quot;"] }],
+      [{ functionName: "ARABIC", arguments: "&quot;MCMIII&quot;" }],
     ];
     await integrationTest("formula", spreadsheet, expectedCsv);
   });
@@ -133,12 +133,12 @@ describe("Spreadsheet builder", () => {
 
     const data: spreadsheetInput = [
       [" ", "2020", "2021", "2022", "avg"],
-      ["a", { value: "27", valueType: "currency" }, { value: "36", valueType: "currency" }, { value: "49", valueType: "currency" }, { functionName: "AVERAGE", arguments: ["[.B2:.D2]"] }],
-      ["b", { value: "9", valueType: "currency" }, { value: "14", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: ["[.B3:.D3]"] }],
-      ["c", { value: "3", valueType: "currency" }, { value: "5", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: ["[.B4:.D4]"] }],
-      ["sum", { functionName: "SUM", arguments: ["[.B2:.B4]"] }, { functionName: "SUM", arguments: ["[.C2:.C4]"] }, { functionName: "SUM", arguments: ["[.D2:.D4]"] }],
+      ["a", { value: "27", valueType: "currency" }, { value: "36", valueType: "currency" }, { value: "49", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B2:.D2]" }],
+      ["b", { value: "9", valueType: "currency" }, { value: "14", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B3:.D3]" }],
+      ["c", { value: "3", valueType: "currency" }, { value: "5", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B4:.D4]" }],
+      ["sum", { functionName: "SUM", arguments: "[.B2:.B4]" }, { functionName: "SUM", arguments: "[.C2:.C4]" }, { functionName: "SUM", arguments: "[.D2:.D4]" }],
     ];
 
-    await integrationTest("formula2", data, expectedCsv);
+    await integrationTest("formula-data-table", data, expectedCsv);
   });
 });

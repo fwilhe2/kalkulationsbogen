@@ -49,9 +49,17 @@ Specific imports:
 import { buildSpreadsheet } from "kalkulationsbogen/spreadsheet";
 ```
 
-# Example
+# Usage
 
-Example code:
+The API provides a single function `buildSpreadsheet` and a few types.
+It takes an argument of type `spreadsheetInput` which is an array of _rows_, each _row_ is an array of _cells_.
+Cells may take different forms where the most simple one is a plain `string`.
+More complex cells are useful if data should be formatted according to its type.
+The provided types map to formatting options which are hardcoded in the spreadsheet template for now.
+
+# Examples
+
+## Simple spreadsheet with different data types
 
 ```typescript
 import { buildSpreadsheet } from "kalkulationsbogen";
@@ -88,4 +96,35 @@ const spreadsheet = [
 
 const mySpreadsheet = await buildSpreadsheet(spreadsheet);
 await writeFile("mySpreadsheet.fods", mySpreadsheet);
+```
+
+## Formulas
+
+Formula are represented in cells which take a `functionName` and a `argument` field.
+The `arguments` field may be a string if the function takes a single argument, or an array if it takes multiple arguments.
+
+Cell references need to be provided in the "A1" format as in this example:
+
+```typescript
+[
+  [
+    { value: "1.0", valueType: "float" },
+    { value: "2.0", valueType: "float" },
+    { value: "3.0", valueType: "float" },
+  ],
+  [
+    { functionName: "SUM", arguments: "[.A1:.C1]" },
+    { functionName: "AVERAGE", arguments: "[.A1:.C1]" },
+    { functionName: "MIN", arguments: "[.A1:.C1]" },
+  ],
+  [
+    { value: "1.1111111", valueType: "float" },
+    { functionName: "ROUND", arguments: ["[.A3]", "1"] },
+  ],
+  [
+    { value: "9.9876", valueType: "float" },
+    { functionName: "ROUND", arguments: ["[.A4]", "1"] },
+  ],
+  [{ functionName: "ARABIC", arguments: "&quot;MCMIII&quot;" }],
+]
 ```
