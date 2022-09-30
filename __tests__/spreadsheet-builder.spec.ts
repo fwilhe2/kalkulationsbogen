@@ -124,6 +124,16 @@ describe("Spreadsheet builder", () => {
     await integrationTest("formula", spreadsheet, expectedCsv);
   });
 
+  function R1C1(r: number, c: number): string {
+    return `${String.fromCharCode(64 + c)}${r}`;
+  }
+
+  function range(...addresses: string[]): string {
+    return `[${addresses.map(a => '.' + a).join(':')}]`
+  }
+
+
+
   test("Data table formula with column sums and row averages", async () => {
     const expectedCsv = `" ","2020","2021","2022","avg"\n"a",27.00€,36.00€,49.00€,37.33€\n"b",9.00€,14.00€,10.00€,11.00€\n"c",3.00€,5.00€,10.00€,6.00€\n"sum",39.00€,55.00€,69.00€,\n`;
 
@@ -133,12 +143,36 @@ describe("Spreadsheet builder", () => {
 
     const data: spreadsheetInput = [
       [" ", "2020", "2021", "2022", "avg"],
-      ["a", { value: "27", valueType: "currency" }, { value: "36", valueType: "currency" }, { value: "49", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B2:.D2]" }],
-      ["b", { value: "9", valueType: "currency" }, { value: "14", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B3:.D3]" }],
-      ["c", { value: "3", valueType: "currency" }, { value: "5", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B4:.D4]" }],
-      ["sum", { functionName: "SUM", arguments: "[.B2:.B4]" }, { functionName: "SUM", arguments: "[.C2:.C4]" }, { functionName: "SUM", arguments: "[.D2:.D4]" }],
+      ["a", { value: "27", valueType: "currency" }, { value: "36", valueType: "currency" }, { value: "49", valueType: "currency" }, { functionName: "AVERAGE", arguments: range(R1C1(2,2),R1C1(2,4)) }],
+      ["b", { value: "9", valueType: "currency" }, { value: "14", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: range(R1C1(3,2),R1C1(3,4)) }],
+      ["c", { value: "3", valueType: "currency" }, { value: "5", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: range(R1C1(4,2),R1C1(4,4)) }],
+      ["sum", { functionName: "SUM", arguments: range(R1C1(2,2),R1C1(4,2)) }, { functionName: "SUM", arguments: range(R1C1(2,3),R1C1(4,3)) }, { functionName: "SUM", arguments: range(R1C1(2,4),R1C1(4,4)) }],
     ];
 
+    const cells = data.map((row, rowIndex) =>
+    row.map((cell, cellIndex) => { return {r: rowIndex + 1, c: cellIndex + 1, cell: cell}}))
+
+  console.log(JSON.stringify(cells));
+
+
     await integrationTest("formula-data-table", data, expectedCsv);
+  });
+
+  test("Absolute and relative cell references", async () => {
+    const expectedCsv = `1.00,2.00,3.00\n6,2,1\n1.11,1.1,\n9.99,10,\n1903,,\n`;
+
+    const spreadsheet: spreadsheetInput = [
+      [
+        { value: "1.0", valueType: "float" },
+      ],
+      [
+        { value: "2.0", valueType: "float" },
+      ],
+      [
+        { value: "3.0", valueType: "float" },
+      ],
+
+    ];
+    await integrationTest("formula", spreadsheet, expectedCsv);
   });
 });
