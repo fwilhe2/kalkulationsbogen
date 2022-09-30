@@ -123,5 +123,5 @@ Cell references need to be provided in the "A1" format as in this example:
     { functionName: "ROUND", arguments: ["[.A4]", "1"] },
   ],
   [{ functionName: "ARABIC", arguments: "&quot;MCMIII&quot;" }],
-]
+];
 ```
