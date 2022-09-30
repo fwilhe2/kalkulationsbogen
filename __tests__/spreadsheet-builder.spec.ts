@@ -124,6 +124,24 @@ describe("Spreadsheet builder", () => {
     await integrationTest("formula", spreadsheet, expectedCsv);
   });
 
+  test("relative and absolute addresses", async () => {
+    const expectedCsv = "10.00,50.00,50,50,50\n13.30,55.94,55.94,55.94,55.94\n25.00,77.00,77,77,77\n32.00,89.60,89.6,89.6,89.6\n";
+
+    // Assume those are measurement values which we want to convert to another unit (celsius to fahrenheit)
+    const degreesInCelsius = [10, 13.3, 25, 32];
+
+    // Spreadsheet where the conversion is done in different ways
+    const spreadsheet: spreadsheetInput = degreesInCelsius.map((d, index) => [
+      { value: `${d}`, valueType: "float" }, // original value (celsius)
+      { value: `${d * 1.8 + 32}`, valueType: "float" }, // conversion done in js
+      { functionName: "", arguments: `A${index + 1}*1.8+32` }, // conversion done in formula using relative address
+      { functionName: "", arguments: `$A${index + 1}*1.8+32` }, // conversion done in formula using absolute column address
+      { functionName: "", arguments: `$A$${index + 1}*1.8+32` }, // conversion done in formula using absolute address
+    ]);
+
+    await integrationTest("celsius-to-fahrenheit", spreadsheet, expectedCsv);
+  });
+
   test("Data table formula with column sums and row averages", async () => {
     const expectedCsv = `" ","2020","2021","2022","avg"\n"a",27.00€,36.00€,49.00€,37.33€\n"b",9.00€,14.00€,10.00€,11.00€\n"c",3.00€,5.00€,10.00€,6.00€\n"sum",39.00€,55.00€,69.00€,\n`;
 
