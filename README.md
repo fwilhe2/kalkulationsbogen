@@ -48,7 +48,7 @@ import { buildSpreadsheet } from "kalkulationsbogen/spreadsheet";
 
 # Usage
 
-The API provides a single function `buildSpreadsheet` and a few types.
+The API provides the function `buildSpreadsheet`, helper functions and a few types.
 It takes an argument of type `spreadsheetInput` which is an array of _rows_, each _row_ is an array of _cells_.
 Cells may take different forms where the most simple one is a plain `string`.
 More complex cells are useful if data should be formatted according to its type.
@@ -100,7 +100,10 @@ await writeFile("mySpreadsheet.fods", mySpreadsheet);
 Formula are represented in cells which take a `functionName` and a `argument` field.
 The `arguments` field may be a string if the function takes a single argument, or an array if it takes multiple arguments.
 
-Cell references need to be provided in the "A1" format as in this example:
+Cell references need to be provided in the "A1" format as in this example.
+Using the `A1(column, row)` function might be convenient.
+
+Note that the indexes are 1-based, passing 0 will throw an error.
 
 ```typescript
 [
@@ -110,7 +113,7 @@ Cell references need to be provided in the "A1" format as in this example:
     { value: "3.0", valueType: "float" },
   ],
   [
-    { functionName: "SUM", arguments: "[.A1:.C1]" },
+    { functionName: "SUM", arguments: `[.${A1(1, 1)}:.${A1(3, 1)}]` },
     { functionName: "AVERAGE", arguments: "[.A1:.C1]" },
     { functionName: "MIN", arguments: "[.A1:.C1]" },
   ],

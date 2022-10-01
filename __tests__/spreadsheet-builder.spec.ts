@@ -2,7 +2,7 @@ import { expect, test } from "@jest/globals";
 import { exec } from "child_process";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import { promisify } from "util";
-import { buildSpreadsheet, spreadsheetInput } from "../src";
+import { buildSpreadsheet, spreadsheetInput, columnIndex, A1 } from "../src";
 
 describe("Unit tests", () => {
   test("buildSpreadsheet creates expected cells", async () => {
@@ -21,6 +21,28 @@ describe("Unit tests", () => {
     expect(actual).toMatch('<table:table-cell office:value="1" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
     expect(actual).toMatch('<table:table-cell office:value="2" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
     expect(actual).toMatch('<table:table-cell office:value="3" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
+  });
+
+  test("column index", async () => {
+    expect(columnIndex(1)).toEqual("A");
+    expect(columnIndex(2)).toEqual("B");
+    expect(columnIndex(3)).toEqual("C");
+    expect(columnIndex(4)).toEqual("D");
+  });
+
+  test("A1 Addressing", async () => {
+    expect(A1(1, 1)).toEqual("A1");
+    expect(A1(2, 1)).toEqual("B1");
+    expect(A1(3, 1)).toEqual("C1");
+    expect(A1(1, 2)).toEqual("A2");
+    expect(A1(1, 3)).toEqual("A3");
+  });
+
+  test("A1 Addressing absolute", async () => {
+    expect(A1(1, 1, "column")).toEqual("$A1");
+    expect(A1(2, 1, "row")).toEqual("B$1");
+    expect(A1(3, 1, "none")).toEqual("C1");
+    expect(A1(1, 2, "columnAndRow")).toEqual("$A$2");
   });
 });
 
@@ -107,7 +129,7 @@ describe("Spreadsheet builder", () => {
         { value: "3.0", valueType: "float" },
       ],
       [
-        { functionName: "SUM", arguments: "[.A1:.C1]" },
+        { functionName: "SUM", arguments: `[.${A1(1, 1)}:.${A1(3, 1)}]` },
         { functionName: "AVERAGE", arguments: "[.A1:.C1]" },
         { functionName: "MIN", arguments: "[.A1:.C1]" },
       ],
@@ -149,7 +171,7 @@ describe("Spreadsheet builder", () => {
     // x   x   x   avg
     // sum sum sum
 
-    const data: spreadsheetInput = [
+    const spreadsheet: spreadsheetInput = [
       [" ", "2020", "2021", "2022", "avg"],
       ["a", { value: "27", valueType: "currency" }, { value: "36", valueType: "currency" }, { value: "49", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B2:.D2]" }],
       ["b", { value: "9", valueType: "currency" }, { value: "14", valueType: "currency" }, { value: "10", valueType: "currency" }, { functionName: "AVERAGE", arguments: "[.B3:.D3]" }],
@@ -157,6 +179,69 @@ describe("Spreadsheet builder", () => {
       ["sum", { functionName: "SUM", arguments: "[.B2:.B4]" }, { functionName: "SUM", arguments: "[.C2:.C4]" }, { functionName: "SUM", arguments: "[.D2:.D4]" }],
     ];
 
-    await integrationTest("formula-data-table", data, expectedCsv);
+    await integrationTest("formula-data-table", spreadsheet, expectedCsv);
+  });
+
+  test("Data table formula with row averages where rows have different number of cells", async () => {
+    const expectedCsv = "27.00€,36.00€,49.00€,37.33€,,\n9.00€,14.00€,10.00€,13.00€,20.00€,13.20€\n3.00€,10.00€,6.50€,,,\n";
+
+    const input: spreadsheetInput = [
+      [
+        { value: "27", valueType: "currency" },
+        { value: "36", valueType: "currency" },
+        { value: "49", valueType: "currency" },
+      ],
+      [
+        { value: "9", valueType: "currency" },
+        { value: "14", valueType: "currency" },
+        { value: "10", valueType: "currency" },
+        { value: "13", valueType: "currency" },
+        { value: "20", valueType: "currency" },
+      ],
+      [
+        { value: "3", valueType: "currency" },
+        { value: "10", valueType: "currency" },
+      ],
+    ];
+
+    const spreadsheet: spreadsheetInput = input.map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.${A1(1, ri + 1)}:.${A1(rows[ri].length, ri + 1)}]` }]);
+
+    await integrationTest("formula-data-table-different-number-of-cells", spreadsheet, expectedCsv);
+  });
+
+  test("Dynamic data table formula with column sums and row averages", async () => {
+    const expectedCsv = `27.00€,36.00€,49.00€,37.33€\n9.00€,14.00€,10.00€,11.00€\n3.00€,5.00€,10.00€,6.00€\n7.00€,9.00€,14.00€,10.00€\n46.00€,64.00€,83.00€,64.33€\n`;
+
+    const input: spreadsheetInput = [
+      [
+        { value: "27", valueType: "currency" },
+        { value: "36", valueType: "currency" },
+        { value: "49", valueType: "currency" },
+      ],
+      [
+        { value: "9", valueType: "currency" },
+        { value: "14", valueType: "currency" },
+        { value: "10", valueType: "currency" },
+      ],
+      [
+        { value: "3", valueType: "currency" },
+        { value: "5", valueType: "currency" },
+        { value: "10", valueType: "currency" },
+      ],
+      [
+        { value: "7", valueType: "currency" },
+        { value: "9", valueType: "currency" },
+        { value: "14", valueType: "currency" },
+      ],
+    ];
+
+    const sumRow = input.map((_, ri, rs) => {
+      return { functionName: "SUM", arguments: `[.${A1(ri + 1, 1, "row")}:.${A1(ri + 1, rs.length)}]` };
+    });
+    const spreadsheet: spreadsheetInput = input
+      .map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.${A1(1, ri + 1, "column")}:.${A1(rows[ri].length, ri + 1)}]` }])
+      .concat([sumRow]);
+
+    await integrationTest("formula-data-table-dynamic", spreadsheet, expectedCsv);
   });
 });
