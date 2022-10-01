@@ -129,7 +129,7 @@ describe("Spreadsheet builder", () => {
         { value: "3.0", valueType: "float" },
       ],
       [
-        { functionName: "SUM", arguments: "[.A1:.C1]" },
+        { functionName: "SUM", arguments: `[.${A1(1, 1)}:.${A1(3, 1)}]` },
         { functionName: "AVERAGE", arguments: "[.A1:.C1]" },
         { functionName: "MIN", arguments: "[.A1:.C1]" },
       ],
@@ -204,7 +204,7 @@ describe("Spreadsheet builder", () => {
       ],
     ];
 
-    const spreadsheet: spreadsheetInput = input.map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.${A1(1,ri + 1)}:.${A1(rows[ri].length,ri + 1)}]` }]);
+    const spreadsheet: spreadsheetInput = input.map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.${A1(1, ri + 1)}:.${A1(rows[ri].length, ri + 1)}]` }]);
 
     await integrationTest("formula-data-table-different-number-of-cells", spreadsheet, expectedCsv);
   });
