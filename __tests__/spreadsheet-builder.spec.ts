@@ -39,10 +39,10 @@ describe("Unit tests", () => {
   });
 
   test("A1 Addressing absolute", async () => {
-    expect(A1(1, 1, 'column')).toEqual("$A1");
-    expect(A1(2, 1, 'row')).toEqual("B$1");
-    expect(A1(3, 1, 'none')).toEqual("C1");
-    expect(A1(1, 2, 'columnAndRow')).toEqual("$A$2");
+    expect(A1(1, 1, "column")).toEqual("$A1");
+    expect(A1(2, 1, "row")).toEqual("B$1");
+    expect(A1(3, 1, "none")).toEqual("C1");
+    expect(A1(1, 2, "columnAndRow")).toEqual("$A$2");
   });
 });
 
@@ -236,9 +236,11 @@ describe("Spreadsheet builder", () => {
     ];
 
     const sumRow = input.map((_, ri, rs) => {
-      return { functionName: "SUM", arguments: `[.${columnIndex(ri + 1)}1:.${columnIndex(ri + 1)}${rs.length}]` };
+      return { functionName: "SUM", arguments: `[.${A1(ri + 1, 1, "row")}:.${A1(ri + 1, rs.length)}]` };
     });
-    const spreadsheet: spreadsheetInput = input.map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.A${ri + 1}:.${columnIndex(rows[ri].length)}${ri + 1}]` }]).concat([sumRow]);
+    const spreadsheet: spreadsheetInput = input
+      .map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.${A1(1, ri + 1, "column")}:.${A1(rows[ri].length, ri + 1)}]` }])
+      .concat([sumRow]);
 
     await integrationTest("formula-data-table-dynamic", spreadsheet, expectedCsv);
   });

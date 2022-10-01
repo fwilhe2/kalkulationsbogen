@@ -69,7 +69,7 @@ function tableCellElement(cell: cell): string {
   return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell.value}]]></text:p> </table:table-cell>`;
 }
 
-type addressAbsolute = 'none' | 'column' | 'row' | 'columnAndRow'
+type addressAbsolute = "none" | "column" | "row" | "columnAndRow";
 
 /**
  * Return "A1" style cell address given one-indexed column and row number
@@ -78,14 +78,14 @@ type addressAbsolute = 'none' | 'column' | 'row' | 'columnAndRow'
  * @param absolute specify if column, row, both or none are prefixed with '$' to indicate they are absolute
  * @returns String like 'A1' or 'C7'
  */
-export function A1(column: number, row: number, absolute: addressAbsolute = 'none'): string {
+export function A1(column: number, row: number, absolute: addressAbsolute = "none"): string {
   if (column < 1) {
     throw new Error(`Minimal column value is 1, actual value is ${column}`);
   }
   if (row < 1) {
     throw new Error(`Minimal row value is 1, actual value is ${row}`);
   }
-  return `${absolute === 'column' || absolute === 'columnAndRow' ? '$' : ''}${columnIndex(column)}${absolute === 'row' || absolute === 'columnAndRow' ? '$' : ''}${row}`;
+  return `${absolute === "column" || absolute === "columnAndRow" ? "$" : ""}${columnIndex(column)}${absolute === "row" || absolute === "columnAndRow" ? "$" : ""}${row}`;
 }
 
 export function columnIndex(i: number): string {
