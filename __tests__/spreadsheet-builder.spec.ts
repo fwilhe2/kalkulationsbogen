@@ -204,7 +204,7 @@ describe("Spreadsheet builder", () => {
       ],
     ];
 
-    const spreadsheet: spreadsheetInput = input.map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.A${ri + 1}:.${String.fromCharCode(64 + rows[ri].length)}${ri + 1}]` }]);
+    const spreadsheet: spreadsheetInput = input.map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.${A1(1,ri + 1)}:.${A1(rows[ri].length-1,ri + 1)}]` }]);
 
     await integrationTest("formula-data-table-different-number-of-cells", spreadsheet, expectedCsv);
   });
