@@ -2,7 +2,7 @@ import { expect, test } from "@jest/globals";
 import { exec } from "child_process";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import { promisify } from "util";
-import { buildSpreadsheet, spreadsheetInput, columnIndex } from "../src";
+import { buildSpreadsheet, spreadsheetInput, columnIndex, A1 } from "../src";
 
 describe("Unit tests", () => {
   test("buildSpreadsheet creates expected cells", async () => {
@@ -24,10 +24,25 @@ describe("Unit tests", () => {
   });
 
   test("column index", async () => {
-    expect(columnIndex(0)).toEqual("A");
-    expect(columnIndex(1)).toEqual("B");
-    expect(columnIndex(2)).toEqual("C");
-    expect(columnIndex(3)).toEqual("D");
+    expect(columnIndex(1)).toEqual("A");
+    expect(columnIndex(2)).toEqual("B");
+    expect(columnIndex(3)).toEqual("C");
+    expect(columnIndex(4)).toEqual("D");
+  });
+
+  test("A1 Addressing", async () => {
+    expect(A1(1, 1)).toEqual("A1");
+    expect(A1(2, 1)).toEqual("B1");
+    expect(A1(3, 1)).toEqual("C1");
+    expect(A1(1, 2)).toEqual("A2");
+    expect(A1(1, 3)).toEqual("A3");
+  });
+
+  test("A1 Addressing absolute", async () => {
+    expect(A1(1, 1, 'column')).toEqual("$A1");
+    expect(A1(2, 1, 'row')).toEqual("B$1");
+    expect(A1(3, 1, 'none')).toEqual("C1");
+    expect(A1(1, 2, 'columnAndRow')).toEqual("$A$2");
   });
 });
 
@@ -221,11 +236,9 @@ describe("Spreadsheet builder", () => {
     ];
 
     const sumRow = input.map((_, ri, rs) => {
-      return { functionName: "SUM", arguments: `[.${columnIndex(ri)}1:.${columnIndex(ri)}${rs.length}]` };
+      return { functionName: "SUM", arguments: `[.${columnIndex(ri + 1)}1:.${columnIndex(ri + 1)}${rs.length}]` };
     });
-    const spreadsheet: spreadsheetInput = input
-      .map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.A${ri + 1}:.${columnIndex(rows[ri].length - 1)}${ri + 1}]` }])
-      .concat([sumRow]);
+    const spreadsheet: spreadsheetInput = input.map((row, ri, rows) => [...row, { functionName: "AVERAGE", arguments: `[.A${ri + 1}:.${columnIndex(rows[ri].length)}${ri + 1}]` }]).concat([sumRow]);
 
     await integrationTest("formula-data-table-dynamic", spreadsheet, expectedCsv);
   });
