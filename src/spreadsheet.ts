@@ -4,10 +4,12 @@ export type cell = complexCell | formulaCell | string;
 export interface complexCell {
   value: string; // | number
   valueType?: valueType | undefined;
+  rangeName?: string;
 }
 export interface formulaCell {
   functionName: string;
   arguments: string[] | string;
+  rangeName?: string;
 }
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
@@ -19,8 +21,49 @@ export type spreadsheetOutput = string;
  */
 export async function buildSpreadsheet(spreadsheet: spreadsheetInput): Promise<string> {
   const tableRows = spreadsheet.map(mapRows).join("\n");
+  const namedExpressions = buildNamedExpressions(spreadsheet);
 
-  return FODS_TEMPLATE.replace("TABLE_ROWS", tableRows);
+  return FODS_TEMPLATE.replace("TABLE_ROWS", tableRows).replace("NAMED_EXPRESSIONS", namedExpressions);
+}
+
+function buildNamedExpressions(s: spreadsheetInput): string {
+  const indexedCells = s.flatMap((r, ri) =>
+    r.map((c, ci) => {
+      return { range: typeof c === "string" ? undefined : c.rangeName, rowIndex: ri + 1, cellIndex: ci + 1 };
+    })
+  );
+
+  // via mdn https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce#grouping_objects_by_a_property
+  function groupBy(objectArray: any[], property: string) {
+    return objectArray.reduce((acc, obj) => {
+      const key = obj[property];
+      const curGroup = acc[key] ?? [];
+
+      return { ...acc, [key]: [...curGroup, obj] };
+    }, {});
+  }
+
+  const cellsGroupedByNamedRanges = groupBy(indexedCells, "range");
+
+  const namedRanges = Object.keys(cellsGroupedByNamedRanges).filter((x) => x !== "undefined");
+
+  function cellRangeAddress(arr: any[]): string {
+    if (arr.length == 1) {
+      return `.${A1(arr[0].cellIndex, arr[0].rowIndex, "columnAndRow")}`;
+    }
+    return `.${A1(arr[0].cellIndex, arr[0].rowIndex, "columnAndRow")}:.${A1(arr[arr.length - 1].cellIndex, arr[arr.length - 1].rowIndex, "columnAndRow")}`;
+  }
+
+  const xmls = namedRanges.map(
+    (r) =>
+      `<table:named-range table:name="${r}" table:base-cell-address="$Sheet1.${A1(
+        cellsGroupedByNamedRanges[r][0].rowIndex,
+        cellsGroupedByNamedRanges[r][0].cellIndex,
+        "columnAndRow"
+      )}" table:cell-range-address="$Sheet1${cellRangeAddress(cellsGroupedByNamedRanges[r])}"/>`
+  );
+
+  return xmls.join("\n");
 }
 
 function mapRows(value: row): string {
@@ -149,6 +192,9 @@ const FODS_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
             <table:table table:name="Sheet1">
 TABLE_ROWS
             </table:table>
+            <table:named-expressions>
+NAMED_EXPRESSIONS
+            </table:named-expressions>
         </office:spreadsheet>
     </office:body>
 </office:document>`;

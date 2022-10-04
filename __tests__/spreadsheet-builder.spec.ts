@@ -244,4 +244,83 @@ describe("Spreadsheet builder", () => {
 
     await integrationTest("formula-data-table-dynamic", spreadsheet, expectedCsv);
   });
+
+  test("named ranges", async () => {
+    const expectedCsv = `1.00,1.00,1.00\n2.00,3.00,\n3,5,\n`;
+
+    const spreadsheet: spreadsheetInput = [
+      [
+        { value: "1", rangeName: "one", valueType: "float" },
+        { value: "1", rangeName: "one", valueType: "float" },
+        { value: "1", rangeName: "one", valueType: "float" },
+      ],
+      [
+        { value: "2", rangeName: "two", valueType: "float" },
+        { value: "3", rangeName: "three", valueType: "float" },
+      ],
+      [
+        {
+          functionName: "SUM",
+          arguments: "one",
+        },
+        {
+          functionName: "",
+          arguments: "two + three",
+        },
+      ],
+    ];
+
+    await integrationTest("range-name", spreadsheet, expectedCsv);
+  });
+
+  test("Performance Model Spreadsheet with named ranges", async () => {
+    const expectedCsv = `"Problem Size X",100.00,"Problem Size Y",100.00,"Compute Time per Cell",10.00,"Number of Ops",1.00,"Communication Time per Cell",200.00\n"Number of CPUs","Parallel Computing Time","Sequential Computing Time","Speedup","Efficiency",,,,,\n4.00,25800,100000,3.87596899224806,0.968992248062015,,,,,\n5.00,21000,100000,4.76190476190476,0.952380952380952,,,,,\n6.00,17866.6666666667,100000,5.59701492537313,0.932835820895522,,,,,\n`;
+
+    const mySpreadsheet: spreadsheetInput = [
+      [
+        "Problem Size X",
+        { rangeName: "problemSizeX", value: "100", valueType: "float" },
+        "Problem Size Y",
+        { rangeName: "problemSizeY", value: "100", valueType: "float" },
+        "Compute Time per Cell",
+        { rangeName: "calculationTimePerCell", value: "10", valueType: "float" },
+        "Number of Ops",
+        { rangeName: "numberOfOperations", value: "1", valueType: "float" },
+        "Communication Time per Cell",
+        { rangeName: "communicationTimePerCell", value: "200", valueType: "float" },
+      ],
+      ["Number of CPUs", "Parallel Computing Time", "Sequential Computing Time", "Speedup", "Efficiency"],
+    ];
+    for (let numberOfCpus = 4; numberOfCpus < 7; numberOfCpus++) {
+      mySpreadsheet.push([
+        {
+          rangeName: "numberOfCpus",
+          value: numberOfCpus.toString(),
+          valueType: "float",
+        },
+        {
+          rangeName: "timeParallel",
+          functionName: "",
+          arguments: "(problemSizeX/numberOfCpus)*problemSizeY*calculationTimePerCell*numberOfOperations+communicationTimePerCell*numberOfCpus",
+        },
+        {
+          rangeName: "timeSequential",
+          functionName: "",
+          arguments: "problemSizeX*problemSizeY*calculationTimePerCell*numberOfOperations",
+        },
+        {
+          rangeName: "speedup",
+          functionName: "",
+          arguments: "timeSequential/timeParallel",
+        },
+        {
+          rangeName: "efficiency",
+          functionName: "",
+          arguments: "speedup/numberOfCpus",
+        },
+      ]);
+    }
+
+    await integrationTest("performance-model-named-ranges", mySpreadsheet, expectedCsv);
+  });
 });
