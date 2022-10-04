@@ -147,18 +147,19 @@ describe("Spreadsheet builder", () => {
   });
 
   test("relative and absolute addresses", async () => {
-    const expectedCsv = "10.00,50.00,50,50,50\n13.30,55.94,55.94,55.94,55.94\n25.00,77.00,77,77,77\n32.00,89.60,89.6,89.6,89.6\n";
+    const expectedCsv = "10.00,50.00,50,50,50,50\n13.30,55.94,55.94,55.94,55.94,55.94\n25.00,77.00,77,77,77,77\n32.00,89.60,89.6,89.6,89.6,89.6\n";
 
     // Assume those are measurement values which we want to convert to another unit (celsius to fahrenheit)
     const degreesInCelsius = [10, 13.3, 25, 32];
 
     // Spreadsheet where the conversion is done in different ways
     const spreadsheet: spreadsheetInput = degreesInCelsius.map((d, index) => [
-      { value: `${d}`, valueType: "float" }, // original value (celsius)
+      { value: `${d}`, valueType: "float", rangeName: "celsius" }, // original value (celsius)
       { value: `${d * 1.8 + 32}`, valueType: "float" }, // conversion done in js
       { functionName: "", arguments: `A${index + 1}*1.8+32` }, // conversion done in formula using relative address
       { functionName: "", arguments: `$A${index + 1}*1.8+32` }, // conversion done in formula using absolute column address
       { functionName: "", arguments: `$A$${index + 1}*1.8+32` }, // conversion done in formula using absolute address
+      { functionName: "", arguments: `celsius*1.8+32` }, // conversion done in formula using named range
     ]);
 
     await integrationTest("celsius-to-fahrenheit", spreadsheet, expectedCsv);

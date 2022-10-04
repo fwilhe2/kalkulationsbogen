@@ -21,12 +21,12 @@ export type spreadsheetOutput = string;
  */
 export async function buildSpreadsheet(spreadsheet: spreadsheetInput): Promise<string> {
   const tableRows = spreadsheet.map(mapRows).join("\n");
-  const namedExpressions = buildNamedExpressions(spreadsheet);
+  const namedRanges = buildNamedRanges(spreadsheet);
 
-  return FODS_TEMPLATE.replace("TABLE_ROWS", tableRows).replace("NAMED_EXPRESSIONS", namedExpressions);
+  return FODS_TEMPLATE.replace("TABLE_ROWS", tableRows).replace("NAMED_RANGES", namedRanges);
 }
 
-function buildNamedExpressions(s: spreadsheetInput): string {
+function buildNamedRanges(s: spreadsheetInput): string {
   const indexedCells = s.flatMap((r, ri) =>
     r.map((c, ci) => {
       return { range: typeof c === "string" ? undefined : c.rangeName, rowIndex: ri + 1, cellIndex: ci + 1 };
@@ -54,7 +54,7 @@ function buildNamedExpressions(s: spreadsheetInput): string {
     return `.${A1(arr[0].cellIndex, arr[0].rowIndex, "columnAndRow")}:.${A1(arr[arr.length - 1].cellIndex, arr[arr.length - 1].rowIndex, "columnAndRow")}`;
   }
 
-  const xmls = namedRanges.map(
+  const namedRangesXmlStrings = namedRanges.map(
     (r) =>
       `<table:named-range table:name="${r}" table:base-cell-address="$Sheet1.${A1(
         cellsGroupedByNamedRanges[r][0].rowIndex,
@@ -63,7 +63,7 @@ function buildNamedExpressions(s: spreadsheetInput): string {
       )}" table:cell-range-address="$Sheet1${cellRangeAddress(cellsGroupedByNamedRanges[r])}"/>`
   );
 
-  return xmls.join("\n");
+  return namedRangesXmlStrings.join("\n");
 }
 
 function mapRows(value: row): string {
@@ -193,7 +193,7 @@ const FODS_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
 TABLE_ROWS
             </table:table>
             <table:named-expressions>
-NAMED_EXPRESSIONS
+NAMED_RANGES
             </table:named-expressions>
         </office:spreadsheet>
     </office:body>
