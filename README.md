@@ -128,3 +128,37 @@ Note that the indexes are 1-based, passing 0 will throw an error.
   [{ functionName: "ARABIC", arguments: "&quot;MCMIII&quot;" }],
 ];
 ```
+
+## Named Ranges
+
+You might not want to use cell addresses in your formulas because they are not self documenting.
+You may use [named ranges](https://help.libreoffice.org/6.2/en-US/text/scalc/01/04070000.html) to help with that.
+
+You may create a named range by applying the `rangeName` property in one or multiple cells.
+If you apply the same name to multiple cells they need to be contiguous.
+
+Usage example:
+
+```typescript
+[
+  [
+    { value: "1", rangeName: "one", valueType: "float" },
+    { value: "1", rangeName: "one", valueType: "float" },
+    { value: "1", rangeName: "one", valueType: "float" },
+  ],
+  [
+    { value: "2", rangeName: "two", valueType: "float" },
+    { value: "3", rangeName: "three", valueType: "float" },
+  ],
+  [
+    {
+      functionName: "SUM",
+      arguments: "one",
+    },
+    {
+      functionName: "",
+      arguments: "two + three",
+    },
+  ],
+];
+```
