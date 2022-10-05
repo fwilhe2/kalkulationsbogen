@@ -10,8 +10,13 @@ describe("Unit tests", () => {
       ["a", "b", "c"],
       [
         { value: "1", valueType: "float" },
-        { value: "2", valueType: "float" },
+        { value: "2", valueType: "float", rangeName: "FOO_RANGE" },
         { value: "3", valueType: "float" },
+      ],
+      [
+        { value: "1", valueType: "float", rangeName: "BAR_RANGE" },
+        { value: "2", valueType: "float", rangeName: "BAR_RANGE" },
+        { value: "3", valueType: "float", rangeName: "BAR_RANGE" },
       ],
     ];
     const actual = await buildSpreadsheet(input);
@@ -21,6 +26,8 @@ describe("Unit tests", () => {
     expect(actual).toMatch('<table:table-cell office:value="1" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
     expect(actual).toMatch('<table:table-cell office:value="2" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
     expect(actual).toMatch('<table:table-cell office:value="3" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
+    expect(actual).toMatch('<table:named-range table:name="FOO_RANGE" table:base-cell-address="$Sheet1.$B$2" table:cell-range-address="$Sheet1.$B$2"/>');
+    expect(actual).toMatch('<table:named-range table:name="BAR_RANGE" table:base-cell-address="$Sheet1.$A$3" table:cell-range-address="$Sheet1.$A$3:.$C$3"/>');
   });
 
   test("column index", async () => {

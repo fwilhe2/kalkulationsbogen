@@ -20,20 +20,24 @@ export type spreadsheetOutput = string;
  * @returns string Flat OpenDocument Spreadsheet document
  */
 export async function buildSpreadsheet(spreadsheet: spreadsheetInput): Promise<string> {
-  const tableRows = spreadsheet.map(mapRows).join("\n");
+  const tableRows = buildTableRows(spreadsheet);
   const namedRanges = buildNamedRanges(spreadsheet);
 
   return FODS_TEMPLATE.replace("TABLE_ROWS", tableRows).replace("NAMED_RANGES", namedRanges);
 }
 
+function buildTableRows(s: spreadsheetInput): string {
+  return s.map(mapRows).join("\n");
+}
+
 function buildNamedRanges(s: spreadsheetInput): string {
-  const indexedCells = s.flatMap((r, ri) =>
+  const rangeNamesIndexed = s.flatMap((r, ri) =>
     r.map((c, ci) => {
       return { range: typeof c === "string" ? undefined : c.rangeName, rowIndex: ri + 1, cellIndex: ci + 1 };
     })
   );
 
-  // via mdn https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce#grouping_objects_by_a_property
+  // via mdn: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce#grouping_objects_by_a_property
   function groupBy(objectArray: any[], property: string) {
     return objectArray.reduce((acc, obj) => {
       const key = obj[property];
@@ -43,7 +47,7 @@ function buildNamedRanges(s: spreadsheetInput): string {
     }, {});
   }
 
-  const cellsGroupedByNamedRanges = groupBy(indexedCells, "range");
+  const cellsGroupedByNamedRanges = groupBy(rangeNamesIndexed, "range");
 
   const namedRanges = Object.keys(cellsGroupedByNamedRanges).filter((x) => x !== "undefined");
 
@@ -57,8 +61,8 @@ function buildNamedRanges(s: spreadsheetInput): string {
   const namedRangesXmlStrings = namedRanges.map(
     (r) =>
       `<table:named-range table:name="${r}" table:base-cell-address="$Sheet1.${A1(
-        cellsGroupedByNamedRanges[r][0].rowIndex,
         cellsGroupedByNamedRanges[r][0].cellIndex,
+        cellsGroupedByNamedRanges[r][0].rowIndex,
         "columnAndRow"
       )}" table:cell-range-address="$Sheet1${cellRangeAddress(cellsGroupedByNamedRanges[r])}"/>`
   );
