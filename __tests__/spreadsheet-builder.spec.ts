@@ -10,8 +10,13 @@ describe("Unit tests", () => {
       ["a", "b", "c"],
       [
         { value: "1", valueType: "float" },
-        { value: "2", valueType: "float" },
+        { value: "2", valueType: "float", rangeName: "FOO_RANGE" },
         { value: "3", valueType: "float" },
+      ],
+      [
+        { value: "1", valueType: "float", rangeName: "BAR_RANGE" },
+        { value: "2", valueType: "float", rangeName: "BAR_RANGE" },
+        { value: "3", valueType: "float", rangeName: "BAR_RANGE" },
       ],
     ];
     const actual = await buildSpreadsheet(input);
@@ -21,6 +26,8 @@ describe("Unit tests", () => {
     expect(actual).toMatch('<table:table-cell office:value="1" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
     expect(actual).toMatch('<table:table-cell office:value="2" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
     expect(actual).toMatch('<table:table-cell office:value="3" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />');
+    expect(actual).toMatch('<table:named-range table:name="FOO_RANGE" table:base-cell-address="$Sheet1.$B$2" table:cell-range-address="$Sheet1.$B$2"/>');
+    expect(actual).toMatch('<table:named-range table:name="BAR_RANGE" table:base-cell-address="$Sheet1.$A$3" table:cell-range-address="$Sheet1.$A$3:.$C$3"/>');
   });
 
   test("column index", async () => {
@@ -147,18 +154,19 @@ describe("Spreadsheet builder", () => {
   });
 
   test("relative and absolute addresses", async () => {
-    const expectedCsv = "10.00,50.00,50,50,50\n13.30,55.94,55.94,55.94,55.94\n25.00,77.00,77,77,77\n32.00,89.60,89.6,89.6,89.6\n";
+    const expectedCsv = "10.00,50.00,50,50,50,50\n13.30,55.94,55.94,55.94,55.94,55.94\n25.00,77.00,77,77,77,77\n32.00,89.60,89.6,89.6,89.6,89.6\n";
 
     // Assume those are measurement values which we want to convert to another unit (celsius to fahrenheit)
     const degreesInCelsius = [10, 13.3, 25, 32];
 
     // Spreadsheet where the conversion is done in different ways
     const spreadsheet: spreadsheetInput = degreesInCelsius.map((d, index) => [
-      { value: `${d}`, valueType: "float" }, // original value (celsius)
+      { value: `${d}`, valueType: "float", rangeName: "celsius" }, // original value (celsius)
       { value: `${d * 1.8 + 32}`, valueType: "float" }, // conversion done in js
       { functionName: "", arguments: `A${index + 1}*1.8+32` }, // conversion done in formula using relative address
       { functionName: "", arguments: `$A${index + 1}*1.8+32` }, // conversion done in formula using absolute column address
       { functionName: "", arguments: `$A$${index + 1}*1.8+32` }, // conversion done in formula using absolute address
+      { functionName: "", arguments: `celsius*1.8+32` }, // conversion done in formula using named range
     ]);
 
     await integrationTest("celsius-to-fahrenheit", spreadsheet, expectedCsv);
@@ -243,5 +251,84 @@ describe("Spreadsheet builder", () => {
       .concat([sumRow]);
 
     await integrationTest("formula-data-table-dynamic", spreadsheet, expectedCsv);
+  });
+
+  test("named ranges", async () => {
+    const expectedCsv = `1.00,1.00,1.00\n2.00,3.00,\n3,5,\n`;
+
+    const spreadsheet: spreadsheetInput = [
+      [
+        { value: "1", rangeName: "one", valueType: "float" },
+        { value: "1", rangeName: "one", valueType: "float" },
+        { value: "1", rangeName: "one", valueType: "float" },
+      ],
+      [
+        { value: "2", rangeName: "two", valueType: "float" },
+        { value: "3", rangeName: "three", valueType: "float" },
+      ],
+      [
+        {
+          functionName: "SUM",
+          arguments: "one",
+        },
+        {
+          functionName: "",
+          arguments: "two + three",
+        },
+      ],
+    ];
+
+    await integrationTest("range-name", spreadsheet, expectedCsv);
+  });
+
+  test("Performance Model Spreadsheet with named ranges", async () => {
+    const expectedCsv = `"Problem Size X",100.00,"Problem Size Y",100.00,"Compute Time per Cell",10.00,"Number of Ops",1.00,"Communication Time per Cell",200.00\n"Number of CPUs","Parallel Computing Time","Sequential Computing Time","Speedup","Efficiency",,,,,\n4.00,25800,100000,3.87596899224806,0.968992248062015,,,,,\n5.00,21000,100000,4.76190476190476,0.952380952380952,,,,,\n6.00,17866.6666666667,100000,5.59701492537313,0.932835820895522,,,,,\n`;
+
+    const mySpreadsheet: spreadsheetInput = [
+      [
+        "Problem Size X",
+        { rangeName: "problemSizeX", value: "100", valueType: "float" },
+        "Problem Size Y",
+        { rangeName: "problemSizeY", value: "100", valueType: "float" },
+        "Compute Time per Cell",
+        { rangeName: "calculationTimePerCell", value: "10", valueType: "float" },
+        "Number of Ops",
+        { rangeName: "numberOfOperations", value: "1", valueType: "float" },
+        "Communication Time per Cell",
+        { rangeName: "communicationTimePerCell", value: "200", valueType: "float" },
+      ],
+      ["Number of CPUs", "Parallel Computing Time", "Sequential Computing Time", "Speedup", "Efficiency"],
+    ];
+    for (let numberOfCpus = 4; numberOfCpus < 7; numberOfCpus++) {
+      mySpreadsheet.push([
+        {
+          rangeName: "numberOfCpus",
+          value: numberOfCpus.toString(),
+          valueType: "float",
+        },
+        {
+          rangeName: "timeParallel",
+          functionName: "",
+          arguments: "(problemSizeX/numberOfCpus)*problemSizeY*calculationTimePerCell*numberOfOperations+communicationTimePerCell*numberOfCpus",
+        },
+        {
+          rangeName: "timeSequential",
+          functionName: "",
+          arguments: "problemSizeX*problemSizeY*calculationTimePerCell*numberOfOperations",
+        },
+        {
+          rangeName: "speedup",
+          functionName: "",
+          arguments: "timeSequential/timeParallel",
+        },
+        {
+          rangeName: "efficiency",
+          functionName: "",
+          arguments: "speedup/numberOfCpus",
+        },
+      ]);
+    }
+
+    await integrationTest("performance-model-named-ranges", mySpreadsheet, expectedCsv);
   });
 });
