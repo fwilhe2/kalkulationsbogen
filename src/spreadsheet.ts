@@ -1,16 +1,17 @@
 export type spreadsheetInput = row[];
 export type row = cell[];
 export type cell = complexCell | formulaCell | string;
-export interface complexCell {
+export type complexCell = cellWithValue & cellWithRange;
+export type formulaCell = cellWithFunction & cellWithRange;
+type cellWithValue = {
   value: string; // | number
-  valueType?: valueType | undefined;
-  rangeName?: string;
-}
-export interface formulaCell {
+  valueType?: valueType;
+};
+type cellWithFunction = {
   functionName: string;
   arguments: string[] | string;
-  rangeName?: string;
-}
+};
+type cellWithRange = { range?: string };
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
 
@@ -33,7 +34,7 @@ function buildTableRows(s: spreadsheetInput): string {
 function buildNamedRanges(s: spreadsheetInput): string {
   const rangeNamesIndexed = s.flatMap((r, ri) =>
     r.map((c, ci) => {
-      return { range: typeof c === "string" ? undefined : c.rangeName, rowIndex: ri + 1, cellIndex: ci + 1 };
+      return { range: typeof c === "string" ? undefined : c.range, rowIndex: ri + 1, cellIndex: ci + 1 };
     })
   );
 

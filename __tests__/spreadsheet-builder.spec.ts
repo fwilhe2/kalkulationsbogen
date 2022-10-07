@@ -10,13 +10,13 @@ describe("Unit tests", () => {
       ["a", "b", "c"],
       [
         { value: "1", valueType: "float" },
-        { value: "2", valueType: "float", rangeName: "FOO_RANGE" },
+        { value: "2", valueType: "float", range: "FOO_RANGE" },
         { value: "3", valueType: "float" },
       ],
       [
-        { value: "1", valueType: "float", rangeName: "BAR_RANGE" },
-        { value: "2", valueType: "float", rangeName: "BAR_RANGE" },
-        { value: "3", valueType: "float", rangeName: "BAR_RANGE" },
+        { value: "1", valueType: "float", range: "BAR_RANGE" },
+        { value: "2", valueType: "float", range: "BAR_RANGE" },
+        { value: "3", valueType: "float", range: "BAR_RANGE" },
       ],
     ];
     const actual = await buildSpreadsheet(input);
@@ -161,7 +161,7 @@ describe("Spreadsheet builder", () => {
 
     // Spreadsheet where the conversion is done in different ways
     const spreadsheet: spreadsheetInput = degreesInCelsius.map((d, index) => [
-      { value: `${d}`, valueType: "float", rangeName: "celsius" }, // original value (celsius)
+      { value: `${d}`, valueType: "float", range: "celsius" }, // original value (celsius)
       { value: `${d * 1.8 + 32}`, valueType: "float" }, // conversion done in js
       { functionName: "", arguments: `A${index + 1}*1.8+32` }, // conversion done in formula using relative address
       { functionName: "", arguments: `$A${index + 1}*1.8+32` }, // conversion done in formula using absolute column address
@@ -258,13 +258,13 @@ describe("Spreadsheet builder", () => {
 
     const spreadsheet: spreadsheetInput = [
       [
-        { value: "1", rangeName: "one", valueType: "float" },
-        { value: "1", rangeName: "one", valueType: "float" },
-        { value: "1", rangeName: "one", valueType: "float" },
+        { value: "1", range: "one", valueType: "float" },
+        { value: "1", range: "one", valueType: "float" },
+        { value: "1", range: "one", valueType: "float" },
       ],
       [
-        { value: "2", rangeName: "two", valueType: "float" },
-        { value: "3", rangeName: "three", valueType: "float" },
+        { value: "2", range: "two", valueType: "float" },
+        { value: "3", range: "three", valueType: "float" },
       ],
       [
         {
@@ -287,42 +287,42 @@ describe("Spreadsheet builder", () => {
     const mySpreadsheet: spreadsheetInput = [
       [
         "Problem Size X",
-        { rangeName: "problemSizeX", value: "100", valueType: "float" },
+        { range: "problemSizeX", value: "100", valueType: "float" },
         "Problem Size Y",
-        { rangeName: "problemSizeY", value: "100", valueType: "float" },
+        { range: "problemSizeY", value: "100", valueType: "float" },
         "Compute Time per Cell",
-        { rangeName: "calculationTimePerCell", value: "10", valueType: "float" },
+        { range: "calculationTimePerCell", value: "10", valueType: "float" },
         "Number of Ops",
-        { rangeName: "numberOfOperations", value: "1", valueType: "float" },
+        { range: "numberOfOperations", value: "1", valueType: "float" },
         "Communication Time per Cell",
-        { rangeName: "communicationTimePerCell", value: "200", valueType: "float" },
+        { range: "communicationTimePerCell", value: "200", valueType: "float" },
       ],
       ["Number of CPUs", "Parallel Computing Time", "Sequential Computing Time", "Speedup", "Efficiency"],
     ];
     for (let numberOfCpus = 4; numberOfCpus < 7; numberOfCpus++) {
       mySpreadsheet.push([
         {
-          rangeName: "numberOfCpus",
+          range: "numberOfCpus",
           value: numberOfCpus.toString(),
           valueType: "float",
         },
         {
-          rangeName: "timeParallel",
+          range: "timeParallel",
           functionName: "",
           arguments: "(problemSizeX/numberOfCpus)*problemSizeY*calculationTimePerCell*numberOfOperations+communicationTimePerCell*numberOfCpus",
         },
         {
-          rangeName: "timeSequential",
+          range: "timeSequential",
           functionName: "",
           arguments: "problemSizeX*problemSizeY*calculationTimePerCell*numberOfOperations",
         },
         {
-          rangeName: "speedup",
+          range: "speedup",
           functionName: "",
           arguments: "timeSequential/timeParallel",
         },
         {
-          rangeName: "efficiency",
+          range: "efficiency",
           functionName: "",
           arguments: "speedup/numberOfCpus",
         },

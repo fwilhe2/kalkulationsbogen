@@ -11,7 +11,7 @@ jobs:
         with:
           node-version: latest
       - run: |
-          sudo apt-get install -y libreoffice libreoffice-l10n-de
+          sudo apt-get update && sudo apt-get install -y libreoffice libreoffice-l10n-de
       - run: |
           yarn
       - run: |
