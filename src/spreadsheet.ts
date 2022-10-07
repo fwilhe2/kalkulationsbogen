@@ -1,16 +1,16 @@
 export type spreadsheetInput = row[];
 export type row = cell[];
 export type cell = complexCell | formulaCell | string;
-export interface complexCell {
+export type complexCell = {
   value: string; // | number
-  valueType?: valueType | undefined;
+  valueType?: valueType;
   rangeName?: string;
-}
-export interface formulaCell {
+};
+export type formulaCell = {
   functionName: string;
   arguments: string[] | string;
   rangeName?: string;
-}
+};
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
 
