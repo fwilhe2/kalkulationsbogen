@@ -1,6 +1,6 @@
 export type spreadsheetInput = row[];
 export type row = cell[];
-export type cell = complexCell | formulaCell | string;
+export type cell = complexCell | formulaCell | headerCell | string;
 export type complexCell = cellWithValue & cellWithRange;
 export type formulaCell = cellWithFunction & cellWithRange;
 type cellWithValue = {
@@ -11,6 +11,9 @@ type cellWithFunction = {
   functionName: string;
   arguments: string[] | string;
 };
+export type headerCell = {
+  title: string
+}
 type cellWithRange = { range?: string };
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
@@ -29,6 +32,14 @@ export async function buildSpreadsheet(spreadsheet: spreadsheetInput): Promise<s
 
 function buildTableRows(s: spreadsheetInput): string {
   return s.map(mapRows).join("\n");
+}
+
+function AutomaticRange(title: string) : string {
+  return `AUTOMATIC_RANGE_${title.replaceAll('-', '_')}`
+}
+
+function isHeaderCell(cell: cell): cell is headerCell {
+  return (cell as headerCell).title !== undefined
 }
 
 function buildNamedRanges(s: spreadsheetInput): string {
@@ -82,6 +93,10 @@ function mapCells(value: cell): string {
 function tableCellElement(cell: cell): string {
   if (typeof cell == "string") {
     return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell}]]></text:p> </table:table-cell>`;
+  }
+
+  if ("title" in cell) {
+    return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell.title}]]></text:p> </table:table-cell>`;
   }
 
   if ("functionName" in cell) {

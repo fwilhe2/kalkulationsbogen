@@ -331,4 +331,60 @@ describe("Spreadsheet builder", () => {
 
     await integrationTest("performance-model-named-ranges", mySpreadsheet, expectedCsv);
   });
+
+  test("auto tables", async () => {
+    const expectedCsv = `1.00,1.00,1.00\n2.00,3.00,\n3,5,\n`;
+
+    const spreadsheet: spreadsheetInput = [
+      [''],
+      [
+        '','',
+        { title: 'January 2020' },
+        { title: 'March 2020' },
+        { title: 'February 2021' },
+        'Average',
+      ],
+      [
+        '',
+        {title: 'Item A'},
+        {value: '33', valueType: 'currency'},
+        {value: '66', valueType: 'currency'},
+        {value: '99', valueType: 'currency'},
+        {
+          functionName: "AVERAGE",
+          arguments: AutomaticRange('Item A'),
+        },
+      ],
+      [
+        '',
+        {title: 'Item B'},
+        {value: '11', valueType: 'currency'},
+        {value: '22', valueType: 'currency'},
+        {value: '33', valueType: 'currency'},
+        {
+          functionName: "AVERAGE",
+          arguments: AutomaticRange('Item B'),
+        },
+      ],
+      [
+        '',
+        'Sum',
+        {
+          functionName: "SUM",
+          arguments: AutomaticRange('January 2020'),
+        },
+        {
+          functionName: "SUM",
+          arguments: AutomaticRange('March 2020'),
+        },
+        {
+          functionName: "SUM",
+          arguments: AutomaticRange('February 2021'),
+        },
+      ]
+    ];
+
+    await integrationTest("range-name", spreadsheet, expectedCsv);
+  });
+
 });

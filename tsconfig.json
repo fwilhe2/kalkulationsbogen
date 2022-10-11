@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "es5",
-    "lib": ["es2015", "DOM"],
+    "target": "ES2021",
+    "lib": ["ES2021", "DOM"],
     "esModuleInterop": true,
     "declaration": true,
     "outDir": "./dist",
