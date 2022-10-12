@@ -15,6 +15,8 @@ type cellWithRange = { range?: string };
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
 
+export type A1Address = `${string}${number}` | `$${string}${number}` | `${string}$${number}` | `$${string}$${number}`
+
 /**
  * Build a spreadsheet from data
  * @param spreadsheet list of lists of cells
@@ -124,9 +126,9 @@ type addressAbsolute = "none" | "column" | "row" | "columnAndRow";
  * @param column one-indexed column number
  * @param row one-indexed row number
  * @param absolute specify if column, row, both or none are prefixed with '$' to indicate they are absolute
- * @returns String like 'A1' or 'C7'
+ * @returns A1Address like 'A1' or 'C7'
  */
-export function A1(column: number, row: number, absolute: addressAbsolute = "none"): string {
+export function A1(column: number, row: number, absolute: addressAbsolute = "none"): A1Address {
   if (column < 1) {
     throw new Error(`Minimal column value is 1, actual value is ${column}`);
   }
