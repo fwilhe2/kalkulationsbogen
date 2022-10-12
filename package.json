@@ -17,7 +17,8 @@
     "format": "npm run _format -- --write",
     "format:check": "npm run _format -- --list-different",
     "all": "yarn run build && yarn run format && yarn run lint && yarn test",
-    "dependency-upgrade": "yarn upgrade && yarn run all"
+    "dependency-upgrade": "yarn upgrade && yarn run all",
+    "convert-test-files": "ts-node convert-test-output-formats.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -50,6 +51,7 @@
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
     "ts-jest": "^29.0.0",
+    "ts-node": "^10.9.1",
     "typescript": "^4.8.3"
   }
 }

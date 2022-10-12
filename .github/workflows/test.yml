@@ -16,6 +16,8 @@ jobs:
           yarn
       - run: |
           yarn run all
+      - run: |
+          yarn convert-test-files
 
   check_if_version_upgraded:
     name: Check if version upgrade
