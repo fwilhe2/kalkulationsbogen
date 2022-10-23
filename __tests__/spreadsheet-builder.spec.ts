@@ -2,7 +2,7 @@ import { expect, test } from "@jest/globals";
 import { exec } from "child_process";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import { promisify } from "util";
-import { buildSpreadsheet, spreadsheetInput, columnIndex, A1 } from "../src";
+import { buildSpreadsheet, spreadsheetInput, columnIndex, A1, cellWithFunction, arrayToSpreadsheet, cell } from "../src";
 
 describe("Unit tests", () => {
   test("buildSpreadsheet creates expected cells", async () => {
@@ -330,5 +330,35 @@ describe("Spreadsheet builder", () => {
     }
 
     await integrationTest("performance-model-named-ranges", mySpreadsheet, expectedCsv);
+  });
+
+  test("Inputs are numbers", async () => {
+    const expectedCsv = `1.11,2.22,3.00,4.00\n3.14,,,\n`;
+
+    const spreadsheet: spreadsheetInput = [[1.11, 2.22, 3, 4], [3.1415]];
+    await integrationTest("number-input", spreadsheet, expectedCsv);
+  });
+
+  test("single-dimensional array", async () => {
+    const expectedCsv = `1.11\n2.22\n3.00\n4.00\n`;
+
+    const inputListOfGrades = [1.11, 2.22, 3, 4];
+
+    const spreadsheet: spreadsheetInput = arrayToSpreadsheet(inputListOfGrades, (grade) => [grade]);
+
+    await integrationTest("single-dimensional-array", spreadsheet, expectedCsv);
+  });
+
+  test("Transform single-dimensional array", async () => {
+    const expectedCsv = `1.11\n2.22\n3.00\n4.00\n2.5825\n`;
+
+    const inputListOfGrades = [1.11, 2.22, 3, 4];
+
+    const transformedGrades: spreadsheetInput = arrayToSpreadsheet(inputListOfGrades, (grade) => [{ value: grade, range: "grades", valueType: "float" } as cell]);
+
+    const average: cellWithFunction[] = [{ functionName: "AVERAGE", arguments: "grades" }];
+    const spreadsheet: spreadsheetInput = transformedGrades.concat([average]);
+
+    await integrationTest("transform-single-dimensional-array", spreadsheet, expectedCsv);
   });
 });
