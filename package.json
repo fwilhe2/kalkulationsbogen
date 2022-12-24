@@ -1,6 +1,6 @@
 {
   "name": "kalkulationsbogen",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Spreadsheet builder for nodejs written in TypeScript",
   "repository": {
     "type": "git",
