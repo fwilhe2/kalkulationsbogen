@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: latest
@@ -72,7 +72,7 @@ jobs:
       - create_github_release
       - check_if_version_upgraded
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         ref: ${{ github.ref }}
     - uses: actions/setup-node@v3
