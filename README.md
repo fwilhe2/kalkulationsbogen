@@ -3,7 +3,7 @@
     <br>
     <br>
     <a href="https://github.com/fwilhe2/kalkulationsbogen/actions">
-      <img src="https://github.com/fwilhe2/kalkulationsbogen/workflows/ci/badge.svg?branch=main">
+      <img src="https://github.com/fwilhe2/kalkulationsbogen/workflows/build/badge.svg?branch=main">
     </a>
     <a href="https://bundlephobia.com/package/kalkulationsbogen">
       <img src="https://img.shields.io/bundlephobia/minzip/kalkulationsbogen">
