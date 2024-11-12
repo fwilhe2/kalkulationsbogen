@@ -5,7 +5,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,7 +28,7 @@ jobs:
     if: |
       github.event_name == 'push' ||
       github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
     outputs:
       from_version: ${{ steps.step1.outputs.from_version }}
@@ -43,7 +43,7 @@ jobs:
         branch: ${{ github.head_ref || github.ref }}
 
   create_github_release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # We create a release only if the version have been upgraded and we are on a default branch
     # PR on the default branch can release beta but not real release
     if: |
@@ -67,7 +67,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish_on_npm:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - create_github_release
       - check_if_version_upgraded
