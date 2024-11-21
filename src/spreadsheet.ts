@@ -1,17 +1,17 @@
 export type spreadsheetInput = row[];
 export type row = cell[];
-export type cell = complexCell | formulaCell | string;
+export type cell = complexCell | formulaCell | string | number;
 export type complexCell = cellWithValue & cellWithRange;
 export type formulaCell = cellWithFunction & cellWithRange;
-type cellWithValue = {
-  value: string; // | number
+export type cellWithValue = {
+  value: string;
   valueType?: valueType;
 };
-type cellWithFunction = {
+export type cellWithFunction = {
   functionName: string;
   arguments: string[] | string;
 };
-type cellWithRange = { range?: string };
+export type cellWithRange = { range?: string };
 export type valueType = "string" | "float" | "date" | "time" | "currency" | "percentage";
 export type spreadsheetOutput = string;
 
@@ -34,7 +34,7 @@ function buildTableRows(s: spreadsheetInput): string {
 function buildNamedRanges(s: spreadsheetInput): string {
   const rangeNamesIndexed = s.flatMap((r, ri) =>
     r.map((c, ci) => {
-      return { range: typeof c === "string" ? undefined : c.range, rowIndex: ri + 1, cellIndex: ci + 1 };
+      return { range: typeof c === "string" || typeof c === "number" ? undefined : c.range, rowIndex: ri + 1, cellIndex: ci + 1 };
     })
   );
 
@@ -82,6 +82,10 @@ function mapCells(value: cell): string {
 function tableCellElement(cell: cell): string {
   if (typeof cell == "string") {
     return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell}]]></text:p> </table:table-cell>`;
+  }
+
+  if (typeof cell === "number") {
+    return `<table:table-cell office:value="${cell}" table:style-name="FLOAT_STYLE" office:value-type="float" calcext:value-type="float" />`;
   }
 
   if ("functionName" in cell) {
@@ -141,6 +145,16 @@ export function columnIndex(i: number): string {
     throw new Error(`Minimal value is 1, actual value is ${i}`);
   }
   return String.fromCharCode(64 + i);
+}
+
+/**
+ * Utility function for using single-dimensional arrays as input for spreadsheets
+ * @param input array of `cell`
+ * @param transformer function transforming a `cell` into `cell[]`
+ * @returns `spreadsheetInput`
+ */
+export function arrayToSpreadsheet(input: cell[], transformer: (row: cell) => cell[]): spreadsheetInput {
+  return input.map(transformer);
 }
 
 const FODS_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
