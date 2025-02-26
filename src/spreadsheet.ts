@@ -35,7 +35,7 @@ function buildNamedRanges(s: spreadsheetInput): string {
   const rangeNamesIndexed = s.flatMap((r, ri) =>
     r.map((c, ci) => {
       return { range: typeof c === "string" ? undefined : c.range, rowIndex: ri + 1, cellIndex: ci + 1 };
-    })
+    }),
   );
 
   // via mdn: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce#grouping_objects_by_a_property
@@ -64,8 +64,8 @@ function buildNamedRanges(s: spreadsheetInput): string {
       `<table:named-range table:name="${r}" table:base-cell-address="$Sheet1.${A1(
         cellsGroupedByNamedRanges[r][0].cellIndex,
         cellsGroupedByNamedRanges[r][0].rowIndex,
-        "columnAndRow"
-      )}" table:cell-range-address="$Sheet1${cellRangeAddress(cellsGroupedByNamedRanges[r])}"/>`
+        "columnAndRow",
+      )}" table:cell-range-address="$Sheet1${cellRangeAddress(cellsGroupedByNamedRanges[r])}"/>`,
   );
 
   return namedRangesXmlStrings.join("\n");
