@@ -43,3 +43,4 @@ jspm_packages
 /dist
 
 __tests__/output
+mySpreadsheet.fods

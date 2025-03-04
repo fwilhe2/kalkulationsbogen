@@ -6,6 +6,7 @@ export type formulaCell = cellWithFunction & cellWithRange;
 type cellWithValue = {
   value: string; // | number
   valueType?: valueType;
+  isInputCell?: boolean;
 };
 type cellWithFunction = {
   functionName: string;
@@ -35,7 +36,7 @@ function buildNamedRanges(s: spreadsheetInput): string {
   const rangeNamesIndexed = s.flatMap((r, ri) =>
     r.map((c, ci) => {
       return { range: typeof c === "string" ? undefined : c.range, rowIndex: ri + 1, cellIndex: ci + 1 };
-    })
+    }),
   );
 
   // via mdn: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce#grouping_objects_by_a_property
@@ -64,8 +65,8 @@ function buildNamedRanges(s: spreadsheetInput): string {
       `<table:named-range table:name="${r}" table:base-cell-address="$Sheet1.${A1(
         cellsGroupedByNamedRanges[r][0].cellIndex,
         cellsGroupedByNamedRanges[r][0].rowIndex,
-        "columnAndRow"
-      )}" table:cell-range-address="$Sheet1${cellRangeAddress(cellsGroupedByNamedRanges[r])}"/>`
+        "columnAndRow",
+      )}" table:cell-range-address="$Sheet1${cellRangeAddress(cellsGroupedByNamedRanges[r])}"/>`,
   );
 
   return namedRangesXmlStrings.join("\n");
@@ -85,7 +86,11 @@ function tableCellElement(cell: cell): string {
   }
 
   if ("functionName" in cell) {
-    return `<table:table-cell table:formula="of:=${cell.functionName}(${Array.isArray(cell.arguments) ? cell.arguments.join(";") : cell.arguments})" />`;
+    return `<table:table-cell table:formula="of:=${cell.functionName}(${Array.isArray(cell.arguments) ? cell.arguments.join(";") : cell.arguments})" table:style-name="CALCULATED_STYLE" />`;
+  }
+
+  if (cell.isInputCell) {
+    return `<table:table-cell office:value="${cell.value}" table:style-name="INPUT_STYLE" office:value-type="${cell.valueType}" calcext:value-type="${cell.valueType}" />`;
   }
 
   if (cell.valueType === "float") {
@@ -191,6 +196,13 @@ const FODS_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
             <number:text>%</number:text>
         </number:percentage-style>
         <style:style style:name="PERCENTAGE_STYLE" style:family="table-cell" style:parent-style-name="Default" style:data-style-name="__PERCENTAGE_STYLE" />
+        <style:style style:name="CALCULATED_STYLE" style:family="table-cell">
+          <style:table-cell-properties fo:background-color="#f2f2f2" fo:border="0.06pt solid #3f3f3f"/>
+        </style:style>
+        <style:style style:name="INPUT_STYLE" style:family="table-cell" style:parent-style-name="Default">
+          <style:table-cell-properties fo:background-color="#ffcc99" fo:border="0.06pt solid #7f7f7f"/>
+          <style:text-properties fo:color="#3f3f76"/>
+        </style:style>
     </office:automatic-styles>
     <office:body>
         <office:spreadsheet>
