@@ -287,15 +287,15 @@ describe("Spreadsheet builder", () => {
     const mySpreadsheet: spreadsheetInput = [
       [
         "Problem Size X",
-        { range: "problemSizeX", value: "100", valueType: "float", isInputCell: true },
+        { range: "problemSizeX", value: "100", valueType: "float", cellStyle: "input" },
         "Problem Size Y",
-        { range: "problemSizeY", value: "100", valueType: "float", isInputCell: true },
+        { range: "problemSizeY", value: "100", valueType: "float", cellStyle: "input" },
         "Compute Time per Cell",
-        { range: "calculationTimePerCell", value: "10", valueType: "float", isInputCell: true },
+        { range: "calculationTimePerCell", value: "10", valueType: "float", cellStyle: "input" },
         "Number of Ops",
-        { range: "numberOfOperations", value: "1", valueType: "float", isInputCell: true },
+        { range: "numberOfOperations", value: "1", valueType: "float", cellStyle: "input" },
         "Communication Time per Cell",
-        { range: "communicationTimePerCell", value: "200", valueType: "float", isInputCell: true },
+        { range: "communicationTimePerCell", value: "200", valueType: "float", cellStyle: "input" },
       ],
       ["Number of CPUs", "Parallel Computing Time", "Sequential Computing Time", "Speedup", "Efficiency"],
     ];

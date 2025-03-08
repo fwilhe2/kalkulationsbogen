@@ -84,11 +84,11 @@ function mapCells(value: cell): string {
 function cellStyleToStyleName(style?: cellStyle): string {
   switch (style) {
     case "calculated":
-      return "_CALCULATED"
-      case "input":
-        return "_INPUT"
+      return "_CALCULATED";
+    case "input":
+      return "_INPUT";
     default:
-      return ""
+      return "";
   }
 }
 
