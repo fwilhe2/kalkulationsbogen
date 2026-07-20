@@ -1,6 +1,7 @@
 import { expect, test } from "@jest/globals";
 import { exec } from "child_process";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
+import { resolve } from "path";
 import { promisify } from "util";
 import { buildSpreadsheet, spreadsheetInput, columnIndex, A1 } from "../src";
 
@@ -37,12 +38,77 @@ describe("Unit tests", () => {
     expect(columnIndex(4)).toEqual("D");
   });
 
+  test("column index beyond Z", async () => {
+    expect(columnIndex(26)).toEqual("Z");
+    expect(columnIndex(27)).toEqual("AA");
+    expect(columnIndex(28)).toEqual("AB");
+    expect(columnIndex(52)).toEqual("AZ");
+    expect(columnIndex(53)).toEqual("BA");
+    expect(columnIndex(702)).toEqual("ZZ");
+    expect(columnIndex(703)).toEqual("AAA");
+  });
+
+  test("A1 Addressing beyond column Z", async () => {
+    expect(A1(27, 1)).toEqual("AA1");
+    expect(A1(30, 1)).toEqual("AD1");
+    expect(A1(703, 12, "columnAndRow")).toEqual("$AAA$12");
+  });
+
   test("A1 Addressing", async () => {
     expect(A1(1, 1)).toEqual("A1");
     expect(A1(2, 1)).toEqual("B1");
     expect(A1(3, 1)).toEqual("C1");
     expect(A1(1, 2)).toEqual("A2");
     expect(A1(1, 3)).toEqual("A3");
+  });
+
+  test("a string cell containing the CDATA terminator stays well formed", async () => {
+    const actual = await buildSpreadsheet([["a]]> b"], [{ value: "c]]> d" }]]);
+
+    // the terminator has to be split across two CDATA sections
+    expect(actual).toMatch("<text:p><![CDATA[a]]]]><![CDATA[> b]]></text:p>");
+    expect(actual).toMatch("<text:p><![CDATA[c]]]]><![CDATA[> d]]></text:p>");
+
+    // and no section may be closed before its cell ends
+    expect(actual).not.toMatch("<![CDATA[a]]> b");
+    expect(actual).not.toMatch("<![CDATA[c]]> d");
+  });
+
+  test("range names are escaped when interpolated into attributes", async () => {
+    const actual = await buildSpreadsheet([[{ value: "1", valueType: "float", range: `a"&<b` }]]);
+
+    expect(actual).toMatch('<table:named-range table:name="a&quot;&amp;&lt;b"');
+  });
+
+  test("a range named 'undefined' is not dropped", async () => {
+    const actual = await buildSpreadsheet([[{ value: "1", valueType: "float", range: "undefined" }]]);
+
+    expect(actual).toMatch('<table:named-range table:name="undefined" table:base-cell-address="$Sheet1.$A$1" table:cell-range-address="$Sheet1.$A$1"/>');
+  });
+
+  test("a named range spanning a rectangle uses its bounding box", async () => {
+    const actual = await buildSpreadsheet([
+      [
+        { value: "1", valueType: "float", range: "block" },
+        { value: "2", valueType: "float", range: "block" },
+      ],
+      [
+        { value: "3", valueType: "float", range: "block" },
+        { value: "4", valueType: "float", range: "block" },
+      ],
+    ]);
+
+    expect(actual).toMatch('<table:named-range table:name="block" table:base-cell-address="$Sheet1.$A$1" table:cell-range-address="$Sheet1.$A$1:.$B$2"/>');
+  });
+
+  test("a non-contiguous named range is rejected instead of silently widened", async () => {
+    const input: spreadsheetInput = [
+      [{ value: "1", valueType: "float", range: "scattered" }, "b", "c"],
+      ["d", "e", "f"],
+      ["g", "h", { value: "2", valueType: "float", range: "scattered" }],
+    ];
+
+    await expect(buildSpreadsheet(input)).rejects.toThrow(/scattered/);
   });
 
   test("A1 Addressing absolute", async () => {
@@ -54,6 +120,12 @@ describe("Unit tests", () => {
 });
 
 describe("Spreadsheet builder", () => {
+  // The expected csv depends on how LibreOffice renders numbers, dates and currencies,
+  // which follows its locale. Both the profile and the environment are pinned so the
+  // tests do not depend on whatever locale the machine running them happens to use.
+  const userProfile = "__tests__/output/libreoffice-profile";
+  const locale = "en_US.UTF-8";
+
   beforeAll(async () => {
     await rm("__tests__/output", { recursive: true, force: true });
     await mkdir("__tests__/output");
@@ -66,7 +138,10 @@ describe("Spreadsheet builder", () => {
     // todo: see why this did not work using execa
 
     const e = promisify(exec);
-    const p = await e(`libreoffice --headless --convert-to csv:"Text - txt - csv (StarCalc)":"44,34,76,1,,1031,true,true" __tests__/output/${name}.fods --outdir __tests__/output`);
+    const p = await e(
+      `libreoffice -env:UserInstallation=file://${resolve(userProfile)} --headless --convert-to csv:"Text - txt - csv (StarCalc)":"44,34,76,1,,1031,true,true" __tests__/output/${name}.fods --outdir __tests__/output`,
+      { env: { ...process.env, LANG: locale, LC_ALL: locale } },
+    );
 
     expect(p.stderr).toEqual("");
 
@@ -124,6 +199,13 @@ describe("Spreadsheet builder", () => {
 
     const spreadsheet = [['<xml is="a thing">', "foo & bar"]];
     await integrationTest("cdata", spreadsheet, expectedCsv);
+  });
+
+  test("CDATA terminator in a cell value", async () => {
+    const expectedCsv = `"a]]> b","]]>"\n`;
+
+    const spreadsheet = [["a]]> b", "]]>"]];
+    await integrationTest("cdata-terminator", spreadsheet, expectedCsv);
   });
 
   test("Formula", async () => {

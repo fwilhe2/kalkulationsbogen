@@ -135,7 +135,8 @@ You might not want to use cell addresses in your formulas because they are not s
 You may use [named ranges](https://help.libreoffice.org/6.2/en-US/text/scalc/01/04070000.html) to help with that.
 
 You may create a named range by applying the `range` property in one or multiple cells.
-If you apply the same name to multiple cells they need to be contiguous.
+If you apply the same name to multiple cells they need to be contiguous, that is they have to fill a complete rectangle of cells.
+Applying the same name to cells which do not is rejected with an error rather than silently widened to the surrounding rectangle.
 
 Usage example:
 
