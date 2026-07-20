@@ -282,20 +282,20 @@ describe("Spreadsheet builder", () => {
   });
 
   test("Performance Model Spreadsheet with named ranges", async () => {
-    const expectedCsv = `"Problem Size X",100.00,"Problem Size Y",100.00,"Compute Time per Cell",10.00,"Number of Ops",1.00,"Communication Time per Cell",200.00\n"Number of CPUs","Parallel Computing Time","Sequential Computing Time","Speedup","Efficiency",,,,,\n4.00,25800,100000,3.87596899224806,0.968992248062015,,,,,\n5.00,21000,100000,4.76190476190476,0.952380952380952,,,,,\n6.00,17866.6666666667,100000,5.59701492537313,0.932835820895522,,,,,\n`;
+    const expectedCsv = `"Problem Size X",100,"Problem Size Y",100,"Compute Time per Cell",10,"Number of Ops",1,"Communication Time per Cell",200\n"Number of CPUs","Parallel Computing Time","Sequential Computing Time","Speedup","Efficiency",,,,,\n4.00,25800,100000,3.87596899224806,0.968992248062015,,,,,\n5.00,21000,100000,4.76190476190476,0.952380952380952,,,,,\n6.00,17866.6666666667,100000,5.59701492537313,0.932835820895522,,,,,\n`;
 
     const mySpreadsheet: spreadsheetInput = [
       [
         "Problem Size X",
-        { range: "problemSizeX", value: "100", valueType: "float" },
+        { range: "problemSizeX", value: "100", valueType: "float", cellStyle: "input" },
         "Problem Size Y",
-        { range: "problemSizeY", value: "100", valueType: "float" },
+        { range: "problemSizeY", value: "100", valueType: "float", cellStyle: "input" },
         "Compute Time per Cell",
-        { range: "calculationTimePerCell", value: "10", valueType: "float" },
+        { range: "calculationTimePerCell", value: "10", valueType: "float", cellStyle: "input" },
         "Number of Ops",
-        { range: "numberOfOperations", value: "1", valueType: "float" },
+        { range: "numberOfOperations", value: "1", valueType: "float", cellStyle: "input" },
         "Communication Time per Cell",
-        { range: "communicationTimePerCell", value: "200", valueType: "float" },
+        { range: "communicationTimePerCell", value: "200", valueType: "float", cellStyle: "input" },
       ],
       ["Number of CPUs", "Parallel Computing Time", "Sequential Computing Time", "Speedup", "Efficiency"],
     ];
