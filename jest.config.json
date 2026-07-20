@@ -3,7 +3,7 @@
   "moduleFileExtensions": ["js", "ts"],
   "testMatch": ["**/*.test.ts", "**/*.spec.ts"],
   "transform": {
-    "^.+\\.ts$": "ts-jest"
+    "^.+\\.ts$": ["ts-jest", { "tsconfig": "tsconfig.test.json" }]
   },
   "verbose": true,
   "testTimeout": 100000

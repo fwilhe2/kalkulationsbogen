@@ -1,19 +1,20 @@
 {
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "es5",
-    "lib": ["es2015", "DOM"],
+    "target": "es2022",
+    "lib": ["es2022"],
+    "types": ["node"],
     "esModuleInterop": true,
     "declaration": true,
+    "rootDir": "./src",
     "outDir": "./dist",
     "sourceMap": true,
     "newLine": "LF",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "incremental": true,
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "strict": true,
-    "downlevelIteration": true,
-    "jsx": "react-jsx",
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"]
