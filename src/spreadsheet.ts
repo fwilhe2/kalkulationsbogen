@@ -31,44 +31,71 @@ function buildTableRows(s: spreadsheetInput): string {
   return s.map(mapRows).join("\n");
 }
 
+type cellPosition = { rowIndex: number; cellIndex: number };
+
 function buildNamedRanges(s: spreadsheetInput): string {
-  const rangeNamesIndexed = s.flatMap((r, ri) =>
-    r.map((c, ci) => {
-      return { range: typeof c === "string" ? undefined : c.range, rowIndex: ri + 1, cellIndex: ci + 1 };
+  const cellsGroupedByNamedRanges = new Map<string, cellPosition[]>();
+  s.forEach((r, ri) =>
+    r.forEach((c, ci) => {
+      const range = typeof c === "string" ? undefined : c.range;
+      if (range === undefined) {
+        return;
+      }
+      const group = cellsGroupedByNamedRanges.get(range) ?? [];
+      group.push({ rowIndex: ri + 1, cellIndex: ci + 1 });
+      cellsGroupedByNamedRanges.set(range, group);
     }),
   );
 
-  // via mdn: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce#grouping_objects_by_a_property
-  function groupBy(objectArray: any[], property: string) {
-    return objectArray.reduce((acc, obj) => {
-      const key = obj[property];
-      const curGroup = acc[key] ?? [];
+  /**
+   * Address of the smallest rectangle containing all cells of the group.
+   * A named range is a single rectangle, so a group which does not fill its
+   * bounding box would silently pull in cells the caller never assigned to it.
+   */
+  function cellRangeAddress(name: string, cells: cellPosition[]): string {
+    const firstColumn = Math.min(...cells.map((c) => c.cellIndex));
+    const lastColumn = Math.max(...cells.map((c) => c.cellIndex));
+    const firstRow = Math.min(...cells.map((c) => c.rowIndex));
+    const lastRow = Math.max(...cells.map((c) => c.rowIndex));
 
-      return { ...acc, [key]: [...curGroup, obj] };
-    }, {});
-  }
-
-  const cellsGroupedByNamedRanges = groupBy(rangeNamesIndexed, "range");
-
-  const namedRanges = Object.keys(cellsGroupedByNamedRanges).filter((x) => x !== "undefined");
-
-  function cellRangeAddress(arr: any[]): string {
-    if (arr.length == 1) {
-      return `.${A1(arr[0].cellIndex, arr[0].rowIndex, "columnAndRow")}`;
+    const boundingBoxSize = (lastColumn - firstColumn + 1) * (lastRow - firstRow + 1);
+    if (boundingBoxSize !== cells.length) {
+      throw new Error(
+        `Named range '${name}' is not contiguous: its cells do not fill the rectangle ${A1(firstColumn, firstRow)}:${A1(lastColumn, lastRow)}. A named range must cover a full rectangle of cells.`,
+      );
     }
-    return `.${A1(arr[0].cellIndex, arr[0].rowIndex, "columnAndRow")}:.${A1(arr[arr.length - 1].cellIndex, arr[arr.length - 1].rowIndex, "columnAndRow")}`;
+
+    if (cells.length == 1) {
+      return `.${A1(firstColumn, firstRow, "columnAndRow")}`;
+    }
+    return `.${A1(firstColumn, firstRow, "columnAndRow")}:.${A1(lastColumn, lastRow, "columnAndRow")}`;
   }
 
-  const namedRangesXmlStrings = namedRanges.map(
-    (r) =>
-      `<table:named-range table:name="${r}" table:base-cell-address="$Sheet1.${A1(
-        cellsGroupedByNamedRanges[r][0].cellIndex,
-        cellsGroupedByNamedRanges[r][0].rowIndex,
+  const namedRangesXmlStrings = [...cellsGroupedByNamedRanges].map(
+    ([name, cells]) =>
+      `<table:named-range table:name="${attribute(name)}" table:base-cell-address="$Sheet1.${A1(
+        cells[0].cellIndex,
+        cells[0].rowIndex,
         "columnAndRow",
-      )}" table:cell-range-address="$Sheet1${cellRangeAddress(cellsGroupedByNamedRanges[r])}"/>`,
+      )}" table:cell-range-address="$Sheet1${cellRangeAddress(name, cells)}"/>`,
   );
 
   return namedRangesXmlStrings.join("\n");
+}
+
+/**
+ * Wrap a value in a CDATA section, splitting it up where it contains the
+ * terminator `]]>` which a single section cannot carry.
+ */
+function cdata(value: string): string {
+  return `<![CDATA[${value.split("]]>").join("]]]]><![CDATA[>")}]]>`;
+}
+
+/**
+ * Escape a value which is interpolated into an XML attribute
+ */
+function attribute(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function mapRows(value: row): string {
@@ -81,7 +108,7 @@ function mapCells(value: cell): string {
 
 function tableCellElement(cell: cell): string {
   if (typeof cell == "string") {
-    return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell}]]></text:p> </table:table-cell>`;
+    return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p>${cdata(cell)}</text:p> </table:table-cell>`;
   }
 
   if ("functionName" in cell) {
@@ -114,7 +141,7 @@ function tableCellElement(cell: cell): string {
     return `<table:table-cell office:value="${cell.value}" table:style-name="PERCENTAGE_STYLE" office:value-type="percentage" calcext:value-type="percentage" />`;
   }
 
-  return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p><![CDATA[${cell.value}]]></text:p> </table:table-cell>`;
+  return `<table:table-cell office:value-type="string" calcext:value-type="string"> <text:p>${cdata(cell.value)}</text:p> </table:table-cell>`;
 }
 
 type addressAbsolute = "none" | "column" | "row" | "columnAndRow";
@@ -136,11 +163,21 @@ export function A1(column: number, row: number, absolute: addressAbsolute = "non
   return `${absolute === "column" || absolute === "columnAndRow" ? "$" : ""}${columnIndex(column)}${absolute === "row" || absolute === "columnAndRow" ? "$" : ""}${row}`;
 }
 
+/**
+ * Return the spreadsheet column name for a one-indexed column number
+ * @param i one-indexed column number
+ * @returns String like 'A', 'Z', 'AA' or 'AAA'
+ */
 export function columnIndex(i: number): string {
   if (i < 1) {
     throw new Error(`Minimal value is 1, actual value is ${i}`);
   }
-  return String.fromCharCode(64 + i);
+  // bijective base-26: A..Z, AA..AZ, BA..ZZ, AAA..
+  let name = "";
+  for (let rest = i; rest > 0; rest = Math.floor((rest - 1) / 26)) {
+    name = String.fromCharCode(65 + ((rest - 1) % 26)) + name;
+  }
+  return name;
 }
 
 const FODS_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
