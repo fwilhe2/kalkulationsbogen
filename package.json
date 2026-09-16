@@ -42,7 +42,7 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^20.12.11",
-    "@typescript-eslint/eslint-plugin": "^5",
+    "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^5",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^10.0.1",
